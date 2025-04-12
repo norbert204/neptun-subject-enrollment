@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+option csharp_namespace = "SubjectService";
+
+package greet;
+
+service Subject {
+  rpc EnrollToCourse (EnrollToCourseRequest) returns (EnrollToCourseResponse);
+}
+
+message EnrollToCourseRequest {
+  string student_id = 1;
+  string course_id = 2;
+}
+
+message EnrollToCourseResponse {
+  bool success = 1;
+  string message = 2;
+}
