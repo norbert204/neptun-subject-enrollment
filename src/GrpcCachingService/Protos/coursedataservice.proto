@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+option csharp_namespace = "CourseRegistrationService.External";
+
+package coursedata;
+
+service CourseDataService {
+  rpc GetAllCourses (GetAllCoursesRequest) returns (GetAllCoursesResponse);
+  rpc GetStudentsWithEligibleCourses (GetStudentsRequest) returns (GetStudentsResponse);
+}
+
+message GetAllCoursesRequest {
+  // Üres kérés
+}
+
+message CourseData {
+  string course_code = 1;
+  string course_name = 2;
+  int32 max_enrollment = 3;
+}
+
+message GetAllCoursesResponse {
+  repeated CourseData courses = 1;
+  bool success = 2;
+  string message = 3;
+}
+
+message GetStudentsRequest {
+  // Üres kérés
+}
+
+message StudentEligibleCourses {
+  string student_id = 1;
+  repeated string eligible_course_codes = 2;
+}
+
+message GetStudentsResponse {
+  repeated StudentEligibleCourses students = 1;
+  bool success = 2;
+  string message = 3;
+}
