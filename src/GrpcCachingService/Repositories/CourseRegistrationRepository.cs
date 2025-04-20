@@ -291,4 +291,66 @@ public class CourseRegistrationRepository : ICourseRegistrationRepository
         using var reader = new StreamReader(stream);
         return reader.ReadToEnd();
     }
+
+    public async Task<IEnumerable<(string CourseCode, IEnumerable<string> StudentIds)>> GetAllCoursesWithStudentsAsync()
+    {
+        try
+        {
+            return await _retryPolicy.ExecuteAsync(async () =>
+            {
+                var result = new List<(string CourseCode, IEnumerable<string> StudentIds)>();
+
+                var server = _redis.GetServer(_redis.GetEndPoints().First());
+                var courseKeys = server.Keys(pattern: "course:*:students").ToArray();
+
+                foreach (var key in courseKeys)
+                {
+                    var courseCode = key.ToString().Split(':')[1];
+                    var students = await _cache.SetMembersAsync(key);
+
+                    result.Add((courseCode, students.Select(s => s.ToString())));
+                }
+
+                return result;
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Error in {nameof(GetAllCoursesWithStudentsAsync)} operation: {ex.Message}");
+            return Enumerable.Empty<(string, IEnumerable<string>)>();
+        }
+    }
+
+    public async Task<IEnumerable<(string StudentId, IEnumerable<string> EligibleCourses)>> GetAllStudentsWithCoursesAsync()
+    {
+        try
+        {
+            return await _retryPolicy.ExecuteAsync(async () =>
+            {
+                var result = new List<(string StudentId, IEnumerable<string> EligibleCourses)>();
+
+                var server = _redis.GetServer(_redis.GetEndPoints().First());
+                var studentKeys = server.Keys(pattern: "student:*:courses").ToArray();
+
+                foreach (var key in studentKeys)
+                {
+                    var studentId = key.ToString().Split(':')[1];
+                    var eligibleCoursesKey = $"student:{studentId}:eligibleCourses";
+                    var eligibleCourses = await _cache.SetMembersAsync(eligibleCoursesKey);
+
+                    result.Add((
+                        studentId,
+                        eligibleCourses.Select(c => c.ToString())
+                    ));
+                }
+
+                return result;
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Error in {nameof(GetAllStudentsWithCoursesAsync)} operation: {ex.Message}");
+            return Enumerable.Empty<(string, IEnumerable<string>)>();
+        }
+    }
 }

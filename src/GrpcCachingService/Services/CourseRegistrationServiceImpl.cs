@@ -1,4 +1,6 @@
-﻿using Grpc.Core;
+﻿using CourseRegistrationService;
+using CourseRegistrationService.External;
+using Grpc.Core;
 using GrpcCachingService.Repositories.Interfaces;
 using GrpcCachingService.Services.Interfaces;
 using Microsoft.AspNetCore.Identity.Data;
@@ -184,6 +186,65 @@ public class CourseRegistrationServiceImpl : CourseRegistrationService.CourseReg
         };
 
         response.CourseCodes.AddRange(courses);
+
+        return response;
+    }
+
+    public override async Task<AllCoursesWithStudentsResponse> GetAllCoursesWithStudents(GetAllCoursesRequest2 request, ServerCallContext context)
+    {
+        _logger.LogInformation("Querying all courses and their students");
+
+        var coursesWithStudents = await _repository.GetAllCoursesWithStudentsAsync();
+
+        var response = new AllCoursesWithStudentsResponse
+        {
+            Success = true,
+            Message = "Courses and their students successfully retrieved"
+        };
+
+        foreach (var (courseCode, studentIds) in coursesWithStudents)
+        {
+            var status = await _repository.GetCourseEnrollmentStatusAsync(courseCode);
+
+            var courseWithStudents = new CourseWithStudents
+            {
+                CourseCode = courseCode,
+                CourseName = courseCode, // lehet kell a tárgy neve is?
+                CurrentEnrollment = status.CurrentEnrollment,
+                MaxEnrollment = status.MaxEnrollment
+            };
+
+            courseWithStudents.StudentIds.AddRange(studentIds);
+
+            response.Courses.Add(courseWithStudents);
+        }
+
+        return response;
+    }
+
+    public override async Task<AllStudentsWithEligibleCoursesResponse> GetAllStudentsWithEligibleCourses(GetAllStudentsRequest request, ServerCallContext context)
+    {
+        _logger.LogInformation("Querying all students and their eligible courses");
+
+        var studentsWithCourses = await _repository.GetAllStudentsWithCoursesAsync();
+
+        var response = new AllStudentsWithEligibleCoursesResponse
+        {
+            Success = true,
+            Message = "Students and their eligible courses successfully retrieved"
+        };
+
+        foreach (var (studentId, eligibleCourses) in studentsWithCourses)
+        {
+            var studentWithCourses = new StudentWithCourses
+            {
+                StudentId = studentId
+            };
+
+            studentWithCourses.EligibleCourseCodes.AddRange(eligibleCourses);
+
+            response.Students.Add(studentWithCourses);
+        }
 
         return response;
     }

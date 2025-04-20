@@ -13,10 +13,14 @@ service CourseRegistrationService {
   
   rpc GetCoursesForStudent (StudentRequest) returns (CoursesResponse);
   rpc GetCourseEnrollmentStatus (CourseRequest) returns (CourseEnrollmentResponse);
+  rpc GetEligibleCoursesForStudent (StudentRequest) returns (EligibleCoursesResponse);
+
   rpc InitializeCourses (InitializeCoursesRequest) returns (InitializeCoursesResponse);
   rpc InitializeStudents (InitializeStudentsRequest) returns (InitializeStudentsResponse);
   rpc InitializeAll (InitializeAllRequest) returns (InitializeAllResponse);
-  rpc GetEligibleCoursesForStudent (StudentRequest) returns (EligibleCoursesResponse);
+
+  rpc GetAllCoursesWithStudents (GetAllCoursesRequest2) returns (AllCoursesWithStudentsResponse);
+  rpc GetAllStudentsWithEligibleCourses (GetAllStudentsRequest) returns (AllStudentsWithEligibleCoursesResponse);
 }
 
 message RegisterRequest {
@@ -100,6 +104,39 @@ message InitializeAllResponse {
 
 message EligibleCoursesResponse {
   repeated string course_codes = 1;
+  bool success = 2;
+  string message = 3;
+}
+
+message GetAllCoursesRequest2 {
+  // Üres kérés
+}
+
+message CourseWithStudents {
+  string course_code = 1;
+  string course_name = 2;
+  int32 current_enrollment = 3;
+  int32 max_enrollment = 4;
+  repeated string student_ids = 5;
+}
+
+message AllCoursesWithStudentsResponse {
+  repeated CourseWithStudents courses = 1;
+  bool success = 2;
+  string message = 3;
+}
+
+message GetAllStudentsRequest {
+  // Üres kérés
+}
+
+message StudentWithCourses {
+  string student_id = 1;
+  repeated string eligible_course_codes = 2;
+}
+
+message AllStudentsWithEligibleCoursesResponse {
+  repeated StudentWithCourses students = 1;
   bool success = 2;
   string message = 3;
 }

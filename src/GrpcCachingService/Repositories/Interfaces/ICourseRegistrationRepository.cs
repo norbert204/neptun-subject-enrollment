@@ -10,5 +10,7 @@ public interface ICourseRegistrationRepository
     Task<(int CurrentEnrollment, int MaxEnrollment, bool IsFull)> GetCourseEnrollmentStatusAsync(string courseCode);
     Task<bool> InitializeStudentEligibleCoursesAsync(string studentId, IEnumerable<string> eligibleCourseCodes);
     Task<IEnumerable<string>> GetEligibleCoursesForStudentAsync(string studentId);
+    Task<IEnumerable<(string CourseCode, IEnumerable<string> StudentIds)>> GetAllCoursesWithStudentsAsync();
+    Task<IEnumerable<(string StudentId, IEnumerable<string> EligibleCourses)>> GetAllStudentsWithCoursesAsync();
 }
 
