@@ -1,0 +1,142 @@
+syntax = "proto3";
+
+option csharp_namespace = "GrpcCachingService";
+
+package courseregistration;
+
+service CourseRegistrationService {
+  rpc RegisterStudentForCourse (RegisterRequest) returns (RegisterResponse);
+  
+  rpc UnregisterStudentFromCourse (UnregisterRequest) returns (UnregisterResponse);
+  
+  rpc GetStudentsForCourse (CourseRequest) returns (StudentsResponse);
+  
+  rpc GetCoursesForStudent (StudentRequest) returns (CoursesResponse);
+  rpc GetCourseEnrollmentStatus (CourseRequest) returns (CourseEnrollmentResponse);
+  rpc GetEligibleCoursesForStudent (StudentRequest) returns (EligibleCoursesResponse);
+
+  rpc InitializeCourses (InitializeCoursesRequest) returns (InitializeCoursesResponse);
+  rpc InitializeStudents (InitializeStudentsRequest) returns (InitializeStudentsResponse);
+  rpc InitializeAll (InitializeAllRequest) returns (InitializeAllResponse);
+
+  rpc GetAllCoursesWithStudents (GetAllCoursesRequest2) returns (AllCoursesWithStudentsResponse);
+  rpc GetAllStudentsWithEligibleCourses (GetAllStudentsRequest) returns (AllStudentsWithEligibleCoursesResponse);
+}
+
+message RegisterRequest {
+  string course_code = 1;
+  string student_id = 2;
+}
+
+message RegisterResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message UnregisterRequest {
+  string course_code = 1;
+  string student_id = 2;
+}
+
+message UnregisterResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message CourseRequest {
+  string course_code = 1;
+}
+
+message StudentsResponse {
+  repeated string student_ids = 1;
+  bool success = 2;
+  string message = 3;
+}
+
+message StudentRequest {
+  string student_id = 1;
+}
+
+message CoursesResponse {
+  repeated string course_codes = 1;
+  bool success = 2;
+  string message = 3;
+}
+
+message CourseEnrollmentResponse {
+  int32 current_enrollment = 1;
+  int32 max_enrollment = 2;
+  bool is_full = 3;
+  bool success = 4;
+  string message = 5;
+}
+
+message InitializeCoursesRequest {
+  bool force_update = 1; // Ha true, akkor a már létezõ tárgyak adatait is frissíti
+}
+
+message InitializeCoursesResponse {
+  int32 initialized_courses_count = 1;
+  bool success = 2;
+  string message = 3;
+}
+
+message InitializeStudentsRequest {
+  bool force_update = 1;
+}
+
+message InitializeStudentsResponse {
+  int32 initialized_students_count = 1;
+  bool success = 2;
+  string message = 3;
+}
+
+message InitializeAllRequest {
+  bool force_update = 1;
+}
+
+message InitializeAllResponse {
+  int32 initialized_courses_count = 1;
+  int32 initialized_students_count = 2;
+  bool success = 3;
+  string message = 4;
+}
+
+message EligibleCoursesResponse {
+  repeated string course_codes = 1;
+  bool success = 2;
+  string message = 3;
+}
+
+message GetAllCoursesRequest2 {
+  // Üres kérés
+}
+
+message CourseWithStudents {
+  string course_code = 1;
+  string course_name = 2;
+  int32 current_enrollment = 3;
+  int32 max_enrollment = 4;
+  repeated string student_ids = 5;
+}
+
+message AllCoursesWithStudentsResponse {
+  repeated CourseWithStudents courses = 1;
+  bool success = 2;
+  string message = 3;
+}
+
+message GetAllStudentsRequest {
+  // Üres kérés
+}
+
+message StudentWithCourses {
+  string student_id = 1;
+  repeated string eligible_course_codes = 2;
+}
+
+message AllStudentsWithEligibleCoursesResponse {
+  repeated StudentWithCourses students = 1;
+  bool success = 2;
+  string message = 3;
+}

@@ -1,0 +1,64 @@
+syntax = "proto3";
+
+import "google/api/annotations.proto";
+
+option csharp_namespace = "GrpcCachingService";
+
+package redis;
+
+service RedisService {
+  // Get a value from Redis
+  rpc GetValue (GetRequest) returns (GetResponse) {
+    option (google.api.http) = {
+      get: "/api/redis/{key}"
+    };
+  }
+
+  // Set a value in Redis
+  rpc SetValue (SetRequest) returns (SetResponse) {
+    option (google.api.http) = {
+      post: "/api/redis"
+      body: "*"
+    };
+  }
+
+  // Delete a value from Redis
+  rpc DeleteValue (DeleteRequest) returns (DeleteResponse) {
+    option (google.api.http) = {
+      delete: "/api/redis/{key}"
+    };
+  }
+}
+
+// Request message for getting a value
+message GetRequest {
+  string key = 1;
+}
+
+// Response message for getting a value
+message GetResponse {
+  string data = 1;
+  bool success = 2;
+}
+
+// Request message for setting a value
+message SetRequest {
+  string key = 1;
+  string data = 2;
+  int32 expiry_seconds = 3;
+}
+
+// Response message for setting a value
+message SetResponse {
+  bool success = 1;
+}
+
+// Request message for deleting a value
+message DeleteRequest {
+  string key = 1;
+}
+
+// Response message for deleting a value
+message DeleteResponse {
+  bool success = 1;
+}
