@@ -1,3 +1,5 @@
+using GrpcCachingService;
+using NeptunKiller.SubjectService.Options;
 using NeptunKiller.SubjectService.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -5,7 +7,14 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddGrpc();
 builder.Services.AddGrpcReflection();
 
-builder.Services.AddSingleton<ICacheService, DummyCacheService>();
+builder.Services.AddOptions<ServiceOptions>("Services");
+
+var serviceOptions = builder.Configuration.GetSection("Services").Get<ServiceOptions>();
+
+builder.Services.AddGrpcClient<CourseRegistrationService.CourseRegistrationServiceClient>(
+    x => x.Address = serviceOptions.CachingServiceUri);
+
+builder.Services.AddSingleton<ICacheService, CacheService>();
 
 var app = builder.Build();
 
