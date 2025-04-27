@@ -1,4 +1,5 @@
 using Grpc.Core;
+using NeptunKiller.SubjectService.Exceptions;
 using NeptunKiller.SubjectService.Services;
 using SubjectService;
 
@@ -18,38 +19,49 @@ public class SubjectService : Subject.SubjectBase
     public override async Task<EnrollToCourseResponse> EnrollToCourse(EnrollToCourseRequest request, ServerCallContext context)
     {
         _logger.LogInformation("Enrolling student {StudentId} to course {CourseId}", request.StudentId, request.CourseId);
-        
-        if (await _cacheService.IsCourseFull(request.CourseId))
-        {
-            return new EnrollToCourseResponse
-            {
-                Success = false,
-                Message = "Course is full",
-            };
-        }
 
-        if (!await _cacheService.CanStudentEnrollToCourse(request.StudentId, request.CourseId))
+        try
         {
-            return new EnrollToCourseResponse
+            if (await _cacheService.IsCourseFull(request.CourseId))
             {
-                Success = false,
-                Message = "Student is not allowed to enroll to this course",
-            };
-        }
-        
-        if (!await _cacheService.EnrollToCourse(request.CourseId, request.StudentId))
-        {
-            return new EnrollToCourseResponse
-            {
-                Success = false,
-                Message = "Course is full",
-            };
-        }
+                return new EnrollToCourseResponse
+                {
+                    Success = false,
+                    Message = "Course is full",
+                };
+            }
 
-        return new EnrollToCourseResponse
+            if (!await _cacheService.CanStudentEnrollToCourse(request.StudentId, request.CourseId))
+            {
+                return new EnrollToCourseResponse
+                {
+                    Success = false,
+                    Message = "Student is not allowed to enroll to this course",
+                };
+            }
+
+            if (!await _cacheService.EnrollToCourse(request.CourseId, request.StudentId))
+            {
+                return new EnrollToCourseResponse
+                {
+                    Success = false,
+                    Message = "Course is full",
+                };
+            }
+
+            return new EnrollToCourseResponse
+            {
+                Success = true,
+                Message = "Successful enrollment",
+            };
+        }
+        catch (CacheServiceException ex)
         {
-            Success = true,
-            Message = "Successful enrollment",
-        };
+            return new EnrollToCourseResponse
+            {
+                Success = false,
+                Message = ex.Message,
+            };
+        }
     }
 }
