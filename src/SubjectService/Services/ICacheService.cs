@@ -7,4 +7,6 @@ public interface ICacheService
     Task<bool> IsCourseFull(string courseId);
     
     Task<bool> EnrollToCourse(string courseId, string studentId);
+    
+    Task<bool> IsStudentAlreadyEnrolled(string courseId, string studentId);
 }

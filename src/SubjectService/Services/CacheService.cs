@@ -64,4 +64,21 @@ public class CacheService : ICacheService
 
         return result.Success;
     }
+
+    public async Task<bool> IsStudentAlreadyEnrolled(string courseId, string studentId)
+    {
+        var request = new CourseRequest
+        {
+            CourseCode = courseId,
+        };
+
+        var result = await _courseRegistrationServiceClient.GetStudentsForCourseAsync(request);
+        
+        if (!result.Success)
+        {
+            throw new CacheServiceException(result.Message);
+        }
+        
+        return result.StudentIds.Contains(studentId);
+    }
 }

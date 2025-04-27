@@ -31,6 +31,15 @@ public class SubjectService : Subject.SubjectBase
                 };
             }
 
+            if (await _cacheService.IsStudentAlreadyEnrolled(request.StudentId, request.CourseId))
+            {
+                return new EnrollToCourseResponse
+                {
+                    Success = false,
+                    Message = "Student is already enrolled to this course",
+                };
+            }
+
             if (!await _cacheService.CanStudentEnrollToCourse(request.StudentId, request.CourseId))
             {
                 return new EnrollToCourseResponse
