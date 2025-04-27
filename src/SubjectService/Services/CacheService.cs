@@ -12,7 +12,7 @@ public class CacheService : ICacheService
         _courseRegistrationServiceClient = courseRegistrationServiceClient;
     }
 
-    public async Task<bool> CanStudentEnrollToCourse(string courseId, string studentId)
+    public async Task<bool> CanStudentEnrollToCourseAsync(string courseId, string studentId)
     {
         var request = new StudentRequest
         {
@@ -29,7 +29,7 @@ public class CacheService : ICacheService
         return result.CourseCodes.Contains(courseId);
     }
 
-    public async Task<bool> IsCourseFull(string courseId)
+    public async Task<bool> IsCourseFullAsync(string courseId)
     {
         var request = new CourseRequest
         {
@@ -47,7 +47,7 @@ public class CacheService : ICacheService
         return result.StudentIds.Count >= 18;
     }
 
-    public async Task<bool> EnrollToCourse(string courseId, string studentId)
+    public async Task<bool> EnrollToCourseAsync(string courseId, string studentId)
     {
         var request = new RegisterRequest
         {
@@ -65,7 +65,7 @@ public class CacheService : ICacheService
         return result.Success;
     }
 
-    public async Task<bool> IsStudentAlreadyEnrolled(string courseId, string studentId)
+    public async Task<bool> IsStudentAlreadyEnrolledAsync(string courseId, string studentId)
     {
         var request = new CourseRequest
         {

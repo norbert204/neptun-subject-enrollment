@@ -22,7 +22,7 @@ public class SubjectService : Subject.SubjectBase
 
         try
         {
-            if (await _cacheService.IsCourseFull(request.CourseId))
+            if (await _cacheService.IsCourseFullAsync(request.CourseId))
             {
                 return new EnrollToCourseResponse
                 {
@@ -31,7 +31,7 @@ public class SubjectService : Subject.SubjectBase
                 };
             }
 
-            if (await _cacheService.IsStudentAlreadyEnrolled(request.StudentId, request.CourseId))
+            if (await _cacheService.IsStudentAlreadyEnrolledAsync(request.StudentId, request.CourseId))
             {
                 return new EnrollToCourseResponse
                 {
@@ -40,7 +40,7 @@ public class SubjectService : Subject.SubjectBase
                 };
             }
 
-            if (!await _cacheService.CanStudentEnrollToCourse(request.StudentId, request.CourseId))
+            if (!await _cacheService.CanStudentEnrollToCourseAsync(request.StudentId, request.CourseId))
             {
                 return new EnrollToCourseResponse
                 {
@@ -49,7 +49,7 @@ public class SubjectService : Subject.SubjectBase
                 };
             }
 
-            if (!await _cacheService.EnrollToCourse(request.CourseId, request.StudentId))
+            if (!await _cacheService.EnrollToCourseAsync(request.CourseId, request.StudentId))
             {
                 return new EnrollToCourseResponse
                 {

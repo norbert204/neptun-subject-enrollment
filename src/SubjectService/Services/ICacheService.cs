@@ -2,11 +2,11 @@ namespace NeptunKiller.SubjectService.Services;
 
 public interface ICacheService
 {
-    Task<bool> CanStudentEnrollToCourse(string courseId, string studentId);
+    Task<bool> CanStudentEnrollToCourseAsync(string courseId, string studentId);
 
-    Task<bool> IsCourseFull(string courseId);
+    Task<bool> IsCourseFullAsync(string courseId);
     
-    Task<bool> EnrollToCourse(string courseId, string studentId);
+    Task<bool> EnrollToCourseAsync(string courseId, string studentId);
     
-    Task<bool> IsStudentAlreadyEnrolled(string courseId, string studentId);
+    Task<bool> IsStudentAlreadyEnrolledAsync(string courseId, string studentId);
 }
