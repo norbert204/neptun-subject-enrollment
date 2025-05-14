@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GrpcCachingService", "src\G
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CourseRegistration.Tests", "test\CourseRegistration.Tests\CourseRegistration.Tests.csproj", "{CF8A3EF8-27DF-D841-D9DB-57BE0E50E2F5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GrpcDatabaseService", "src\GrpcDatabaseService\GrpcDatabaseService.csproj", "{20BCB0A2-BE9E-4783-83FC-A328AC745F0F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{CF8A3EF8-27DF-D841-D9DB-57BE0E50E2F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CF8A3EF8-27DF-D841-D9DB-57BE0E50E2F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CF8A3EF8-27DF-D841-D9DB-57BE0E50E2F5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{20BCB0A2-BE9E-4783-83FC-A328AC745F0F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{20BCB0A2-BE9E-4783-83FC-A328AC745F0F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{20BCB0A2-BE9E-4783-83FC-A328AC745F0F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{20BCB0A2-BE9E-4783-83FC-A328AC745F0F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

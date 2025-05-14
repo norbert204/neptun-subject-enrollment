@@ -1,0 +1,155 @@
+syntax = "proto3";
+
+option csharp_namespace = "GrpcDatabaseService";
+
+package subjectService;
+
+service SubjectService {
+  // Create a new subject
+  rpc CreateSubject (CreateSubjectRequest) returns (CreateSubjectResponse);
+  
+  // Get a subject by ID
+  rpc GetSubject (GetSubjectRequest) returns (GetSubjectResponse);
+  
+  // Get all subjects
+  rpc GetAllSubjects (GetAllSubjectsRequest) returns (GetAllSubjectsResponse);
+  
+  // Update an existing subject
+  rpc UpdateSubject (UpdateSubjectRequest) returns (UpdateSubjectResponse);
+  
+  // Delete a subject
+  rpc DeleteSubject (DeleteSubjectRequest) returns (DeleteSubjectResponse);
+  
+  // Add a course to a subject
+  rpc AddCourse (AddCourseRequest) returns (AddCourseResponse);
+  
+  // Remove a course from a subject
+  rpc RemoveCourse (RemoveCourseRequest) returns (RemoveCourseResponse);
+  
+  // Add a prerequisite to a subject
+  rpc AddPrerequisite (AddPrerequisiteRequest) returns (AddPrerequisiteResponse);
+  
+  // Remove a prerequisite from a subject
+  rpc RemovePrerequisite (RemovePrerequisiteRequest) returns (RemovePrerequisiteResponse);
+}
+
+// Subject create messages
+message CreateSubjectRequest {
+  string id = 1;
+  string owner = 2;
+  string name = 3;
+  repeated string prerequisites = 4;
+  repeated string courses = 5;
+}
+
+message CreateSubjectResponse {
+  bool success = 1;
+  string message = 2;
+  SubjectDTO subject = 3;
+}
+
+// Subject get messages
+message GetSubjectRequest {
+  string id = 1;
+}
+
+message GetSubjectResponse {
+  bool success = 1;
+  string message = 2;
+  SubjectDTO subject = 3;
+}
+
+// Get all subjects messages
+message GetAllSubjectsRequest {
+  // Empty request
+}
+
+message GetAllSubjectsResponse {
+  bool success = 1;
+  string message = 2;
+  repeated SubjectDTO subjects = 3;
+}
+
+// Subject update messages
+message UpdateSubjectRequest {
+  string id = 1;
+  string owner = 2;
+  string name = 3;
+  repeated string prerequisites = 4;
+  repeated string courses = 5;
+}
+
+message UpdateSubjectResponse {
+  bool success = 1;
+  string message = 2;
+  SubjectDTO subject = 3;
+}
+
+// Subject delete messages
+message DeleteSubjectRequest {
+  string id = 1;
+}
+
+message DeleteSubjectResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// Add course messages
+message AddCourseRequest {
+  string subject_id = 1;
+  string course_id = 2;
+}
+
+message AddCourseResponse {
+  bool success = 1;
+  string message = 2;
+  SubjectDTO subject = 3;
+}
+
+// Remove course messages
+message RemoveCourseRequest {
+  string subject_id = 1;
+  string course_id = 2;
+}
+
+message RemoveCourseResponse {
+  bool success = 1;
+  string message = 2;
+  SubjectDTO subject = 3;
+}
+
+// Add prerequisite messages
+message AddPrerequisiteRequest {
+  string subject_id = 1;
+  string prerequisite_id = 2;
+  //repeated string prerequisites = 2;
+  /*egyszerre többet kell hozzáadni és törölni, ezt módosítani kell majd*/
+}
+
+message AddPrerequisiteResponse {
+  bool success = 1;
+  string message = 2;
+  SubjectDTO subject = 3;
+}
+
+// Remove prerequisite messages
+message RemovePrerequisiteRequest {
+  string subject_id = 1;
+  string prerequisite_id = 2;
+}
+
+message RemovePrerequisiteResponse {
+  bool success = 1;
+  string message = 2;
+  SubjectDTO subject = 3;
+}
+
+// Common DTO
+message SubjectDTO {
+  string id = 1;
+  string owner = 2;
+  string name = 3;
+  repeated string prerequisites = 4;
+  repeated string courses = 5;
+}

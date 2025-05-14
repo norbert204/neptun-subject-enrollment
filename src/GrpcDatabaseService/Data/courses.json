@@ -1,0 +1,23 @@
+[
+  {
+    "ID": "CS102",
+    "Room": "B2",
+    "StartTime": "00:00",
+    "EndTime": "00:00",
+    "Capacity": 2,
+    "EnrolledStudents": [
+      "ABC123",
+      "ABC13"
+    ],
+    "CourseType": 0
+  },
+  {
+    "ID": "CS103",
+    "Room": "B2",
+    "StartTime": "0:0",
+    "EndTime": "00:00",
+    "Capacity": 30,
+    "EnrolledStudents": [],
+    "CourseType": 0
+  }
+]

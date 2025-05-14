@@ -1,0 +1,14 @@
+[
+  {
+    "NeptunCode": "ABC123",
+    "Name": "John Smith",
+    "Email": "john.smith@example.com",
+    "Password": ""
+  },
+  {
+    "NeptunCode": "DEF456",
+    "Name": "John Doe",
+    "Email": "john@example.com",
+    "Password": "securePassword"
+  }
+]

@@ -1,0 +1,15 @@
+[
+  {
+    "ID": "SUBJ101",
+    "Owner": "PROF456",
+    "Name": "Introduction to Computer Science",
+    "Prerequisites": [
+      "MATH101",
+      "PROG101"
+    ],
+    "Courses": [
+      "COURSE101",
+      "COURSE102"
+    ]
+  }
+]
