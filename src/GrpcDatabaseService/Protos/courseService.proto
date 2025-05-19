@@ -1,130 +1,57 @@
 syntax = "proto3";
 
-option csharp_namespace = "GrpcDatabaseService";
+option csharp_namespace = "GrpcDatabaseService.Protos";
 
-package courseService;
+package course;
 
+// Course service definition
 service CourseService {
-  rpc CreateCourse (CreateCourseRequest) returns (CreateCourseResponse);
-  
-  rpc GetCourse (GetCourseRequest) returns (GetCourseResponse);
- 
-  rpc GetAllCourses (GetAllCoursesRequest) returns (GetAllCoursesResponse);
-  
-  rpc UpdateCourse (UpdateCourseRequest) returns (UpdateCourseResponse);
-  
-  rpc DeleteCourse (DeleteCourseRequest) returns (DeleteCourseResponse);
-  
-  rpc EnrollStudent (EnrollStudentRequest) returns (EnrollStudentResponse);
-  
-  rpc RemoveStudent (RemoveStudentRequest) returns (RemoveStudentResponse);
+  rpc CreateCourse (CourseRequest) returns (CourseResponse);
+  rpc GetCourse (CourseIdRequest) returns (CourseResponse);
+  rpc UpdateCourse (CourseRequest) returns (CourseResponse);
+  rpc DeleteCourse (CourseIdRequest) returns (DeleteCourseResponse);
+  rpc ListCourses (GetAllCoursesRequest) returns (CourseListResponse);
 }
 
-// Course create messages
-message CreateCourseRequest {
-  string id = 1;
-  string room = 2;
-  int32 start_time_hours = 3;
-  int32 start_time_minutes = 4;
-  int32 end_time_hours = 5;
-  int32 end_time_minutes = 6;
-  int32 capacity = 7;
-  CourseType course_type = 8;
-}
-
-message CreateCourseResponse {
-  bool success = 1;
-  string message = 2;
-  CourseDTO course = 3;
-}
-
-// Course get messages
-message GetCourseRequest {
-  string id = 1;
-}
-
-message GetCourseResponse {
-  bool success = 1;
-  string message = 2;
-  CourseDTO course = 3;
-}
-
-// Get all courses messages
-message GetAllCoursesRequest {
-  // Empty request
-}
-
-message GetAllCoursesResponse {
-  bool success = 1;
-  string message = 2;
-  repeated CourseDTO courses = 3;
-}
-
-// Course update messages
-message UpdateCourseRequest {
-  string id = 1;
-  string room = 2;
-  int32 start_time_hours = 3;
-  int32 start_time_minutes = 4;
-  int32 end_time_hours = 5;
-  int32 end_time_minutes = 6;
-  int32 capacity = 7;
-  CourseType course_type = 8;
-}
-
-message UpdateCourseResponse {
-  bool success = 1;
-  string message = 2;
-  CourseDTO course = 3;
-}
-
-// Course delete messages
-message DeleteCourseRequest {
-  string id = 1;
-}
-
-message DeleteCourseResponse {
-  bool success = 1;
-  string message = 2;
-}
-
-// Enroll student messages
-message EnrollStudentRequest {
-  string course_id = 1;
-  string neptun_code = 2;
-}
-
-message EnrollStudentResponse {
-  bool success = 1;
-  string message = 2;
-  CourseDTO course = 3;
-}
-
-// Remove student messages
-message RemoveStudentRequest {
-  string course_id = 1;
-  string neptun_code = 2;
-}
-
-message RemoveStudentResponse {
-  bool success = 1;
-  string message = 2;
-  CourseDTO course = 3;
-}
-
-// Common DTO
-message CourseDTO {
+message CourseRequest {
   string id = 1;
   string room = 2;
   string start_time = 3;
   string end_time = 4;
   int32 capacity = 5;
   repeated string enrolled_students = 6;
-  CourseType course_type = 7;
+  string course_type = 7;
 }
 
-// Enums
-enum CourseType {
-  LECTURE = 0;
-  LAB = 1;
+message CourseResponse {
+  bool success = 1;
+  string message = 2;
+  CourseData course = 3;
+}
+
+message CourseData {
+  string id = 1;
+  string room = 2;
+  string start_time = 3;
+  string end_time = 4;
+  int32 capacity = 5;
+  repeated string enrolled_students = 6;
+  string course_type = 7;
+}
+
+message CourseIdRequest {
+  string id = 1;
+}
+
+message CourseListResponse {
+  repeated CourseData courses = 1;
+}
+
+message GetAllCoursesRequest {
+	//Empty request
+}
+
+message DeleteCourseResponse {
+  bool success = 1;
+  string message = 2;
 }

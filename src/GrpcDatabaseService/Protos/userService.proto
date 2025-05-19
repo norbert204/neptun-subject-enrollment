@@ -1,89 +1,50 @@
 syntax = "proto3";
 
-option csharp_namespace = "GrpcDatabaseService";
+option csharp_namespace = "GrpcDatabaseService.Protos";
 
-package userService;
+package user;
 
+// User service definition
 service UserService {
-  // Create a new user
-  rpc CreateUser (CreateUserRequest) returns (CreateUserResponse);
-  
-  // Get a user by ID
-  rpc GetUser (GetUserRequest) returns (GetUserResponse);
-  
-  // Get all users
-  rpc GetAllUsers (GetAllUsersRequest) returns (GetAllUsersResponse);
-  
-  // Update an existing user
-  rpc UpdateUser (UpdateUserRequest) returns (UpdateUserResponse);
-  
-  // Delete a user
-  rpc DeleteUser (DeleteUserRequest) returns (DeleteUserResponse);
+  rpc CreateUser (UserRequest) returns (UserResponse);
+  rpc GetUser (UserIdRequest) returns (UserResponse);
+  rpc UpdateUser (UserRequest) returns (UserResponse);
+  rpc DeleteUser (UserIdRequest) returns (DeleteResponse);
+  rpc ListUsers (GetAllUsersRequest) returns (UserListResponse);
 }
 
-// User create messages
-message CreateUserRequest {
+message UserRequest {
   string neptun_code = 1;
   string name = 2;
   string email = 3;
   string password = 4;
 }
 
-message CreateUserResponse {
+message UserResponse {
   bool success = 1;
   string message = 2;
-  UserDTO user = 3;
+  UserData user = 3;
 }
 
-// User get messages
-message GetUserRequest {
+message UserData {
+  string neptun_code = 1;
+  string name = 2;
+  string email = 3;
+}
+
+message UserIdRequest {
   string neptun_code = 1;
 }
 
-message GetUserResponse {
-  bool success = 1;
-  string message = 2;
-  UserDTO user = 3;
+message UserListResponse {
+  repeated UserData users = 1;
 }
 
-// Get all users messages
 message GetAllUsersRequest {
-  // Empty request
+	// Empty request
 }
 
-message GetAllUsersResponse {
+message DeleteResponse {
   bool success = 1;
   string message = 2;
-  repeated UserDTO users = 3;
-}
-
-// User update messages
-message UpdateUserRequest {
-  string neptun_code = 1;
-  string name = 2;
-  string email = 3;
-  string password = 4;
-}
-
-message UpdateUserResponse {
-  bool success = 1;
-  string message = 2;
-  UserDTO user = 3;
-}
-
-// User delete messages
-message DeleteUserRequest {
-  string neptun_code = 1;
-}
-
-message DeleteUserResponse {
-  bool success = 1;
-  string message = 2;
-}
-
-// Common DTO
-message UserDTO {
-  string neptun_code = 1;
-  string name = 2;
-  string email = 3;
 }
