@@ -1,3 +1,5 @@
+using GrpcDatabaseService.Repositories;
+using GrpcDatabaseService.Repositories.Interfaces;
 using GrpcDatabaseService.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -5,20 +7,21 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddGrpc();
 
-builder.Services.AddSingleton<DatabaseContext>(provider =>
-{
-    // Get the content root path
-    var contentRootPath = builder.Environment.ContentRootPath;
-    // Create a data directory path
-    var dataDirectory = Path.Combine(contentRootPath, "Data");
+// Configure Cassandra connection
+builder.Services.AddSingleton(provider =>
+    new CassandraConnection(
+        builder.Configuration.GetValue<string>("CassandraSettings:ContactPoints"),
+        builder.Configuration.GetValue<string>("CassandraSettings:Keyspace")
+    ));
 
-    return new DatabaseContext(dataDirectory);
-});
+// Register repositories
+builder.Services.AddScoped<ISubjectRepository, SubjectRepository>();
+builder.Services.AddScoped<ICourseRepository, CourseRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-//app.MapGrpcService<GreeterService>();
 app.MapGrpcService<UserService>();
 app.MapGrpcService<CourseService>();
 app.MapGrpcService<SubjectService>();

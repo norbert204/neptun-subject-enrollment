@@ -1,51 +1,72 @@
-﻿using Grpc.Core;
+﻿using Google.Protobuf.WellKnownTypes;
+using Grpc.Core;
 using GrpcDatabaseService.Models;
-using GrpcDatabaseService.Services;
+using GrpcDatabaseService.Protos;
+using GrpcDatabaseService.Repositories;
+using GrpcDatabaseService.Repositories.Interfaces;
+using Microsoft.Extensions.Logging;
 
 namespace GrpcDatabaseService.Services
 {
-    public class CourseService : GrpcDatabaseService.CourseService.CourseServiceBase
+    /// <summary>
+    /// Implementation of the Course GRPC service
+    /// </summary>
+    public class CourseService : Protos.CourseService.CourseServiceBase
     {
-        private readonly DatabaseContext _dbContext;
+        private readonly ICourseRepository _repository;
         private readonly ILogger<CourseService> _logger;
 
-        public CourseService(DatabaseContext dbContext, ILogger<CourseService> logger)
+        /// <summary>
+        /// Initializes a new instance of the CourseService class
+        /// </summary>
+        public CourseService(ICourseRepository repository, ILogger<CourseService> logger)
         {
-            _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _repository = repository;
+            _logger = logger;
         }
-        public override async Task<CreateCourseResponse> CreateCourse(CreateCourseRequest request, ServerCallContext context)
+
+        /// <summary>
+        /// Creates a new course
+        /// </summary>
+        public override async Task<CourseResponse> CreateCourse(CourseRequest request, ServerCallContext context)
         {
             _logger.LogInformation("Creating course with ID: {CourseId}", request.Id);
 
             try
             {
-                // Create course model from request
                 var course = new Course
                 {
-                    ID = request.Id,
+                    Id = request.Id,
                     Room = request.Room,
-                    StartTime = $"{request.StartTimeHours}:{request.StartTimeMinutes}",
-                    EndTime = $"{request.EndTimeHours:D2}:{request.EndTimeMinutes:D2}",
+                    StartTime = request.StartTime,
+                    EndTime = request.EndTime,
                     Capacity = request.Capacity,
-                    EnrolledStudents = new System.Collections.Generic.List<string>(),
-                    CourseType = (Models.CourseType)request.CourseType
+                    EnrolledStudents = request.EnrolledStudents.ToList(),
+                    CourseType = request.CourseType
                 };
 
-                await _dbContext.AddCourseAsync(course);
+                var result = await _repository.CreateCourseAsync(course);
 
-                // Create response
-                return new CreateCourseResponse
+                return new CourseResponse
                 {
                     Success = true,
                     Message = "Course created successfully",
-                    Course = MapToCourseDto(course)
+                    Course = new CourseData
+                    {
+                        Id = result.Id,
+                        Room = result.Room,
+                        StartTime = result.StartTime,
+                        EndTime = result.EndTime,
+                        Capacity = result.Capacity,
+                        EnrolledStudents = { result.EnrolledStudents },
+                        CourseType = result.CourseType
+                    }
                 };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error creating course with ID: {CourseId}", request.Id);
-                return new CreateCourseResponse
+                return new CourseResponse
                 {
                     Success = false,
                     Message = $"Failed to create course: {ex.Message}"
@@ -53,130 +74,115 @@ namespace GrpcDatabaseService.Services
             }
         }
 
-        public override async Task<GetCourseResponse> GetCourse(GetCourseRequest request, ServerCallContext context)
+        /// <summary>
+        /// Retrieves a course by ID
+        /// </summary>
+        public override async Task<CourseResponse> GetCourse(CourseIdRequest request, ServerCallContext context)
         {
             _logger.LogInformation("Getting course with ID: {CourseId}", request.Id);
 
             try
             {
-                var course = await _dbContext.GetCourseByIdAsync(request.Id);
-
+                var course = await _repository.GetCourseAsync(request.Id);
                 if (course == null)
                 {
-                    return new GetCourseResponse
+                    return new CourseResponse
                     {
                         Success = false,
-                        Message = $"Course with ID {request.Id} not found"
+                        Message = "Course not found"
                     };
                 }
 
-                return new GetCourseResponse
+                return new CourseResponse
                 {
                     Success = true,
                     Message = "Course retrieved successfully",
-                    Course = MapToCourseDto(course)
+                    Course = new CourseData
+                    {
+                        Id = course.Id,
+                        Room = course.Room,
+                        StartTime = course.StartTime,
+                        EndTime = course.EndTime,
+                        Capacity = course.Capacity,
+                        EnrolledStudents = { course.EnrolledStudents },
+                        CourseType = course.CourseType
+                    }
                 };
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting course with ID: {CourseId}", request.Id);
-                return new GetCourseResponse
+                _logger.LogError(ex, "Error retrieving course with ID: {CourseId}", request.Id);
+                return new CourseResponse
                 {
                     Success = false,
                     Message = $"Failed to retrieve course: {ex.Message}"
                 };
             }
         }
-        public override async Task<GetAllCoursesResponse> GetAllCourses(GetAllCoursesRequest request, ServerCallContext context)
-        {
-            _logger.LogInformation("Getting all courses");
 
-            try
-            {
-                var courses = await _dbContext.GetAllCoursesAsync();
-                var response = new GetAllCoursesResponse
-                {
-                    Success = true,
-                    Message = "Courses retrieved successfully"
-                };
-
-                foreach (var course in courses)
-                {
-                    response.Courses.Add(MapToCourseDto(course));
-                }
-
-                return response;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting all courses");
-                return new GetAllCoursesResponse
-                {
-                    Success = false,
-                    Message = $"Failed to retrieve courses: {ex.Message}"
-                };
-            }
-        }
-        public override async Task<UpdateCourseResponse> UpdateCourse(UpdateCourseRequest request, ServerCallContext context)
+        /// <summary>
+        /// Updates an existing course
+        /// </summary>
+        public override async Task<CourseResponse> UpdateCourse(CourseRequest request, ServerCallContext context)
         {
             _logger.LogInformation("Updating course with ID: {CourseId}", request.Id);
 
             try
             {
-                var existingCourse = await _dbContext.GetCourseByIdAsync(request.Id);
-
-                if (existingCourse == null)
+                var course = new Course
                 {
-                    return new UpdateCourseResponse
-                    {
-                        Success = false,
-                        Message = $"Course with ID {request.Id} not found"
-                    };
-                }
-
-                // Update course with new values but preserve enrolled students
-                var updatedCourse = new Course
-                {
-                    ID = request.Id,
+                    Id = request.Id,
                     Room = request.Room,
-                    StartTime = $"{request.StartTimeHours:D2}:{request.StartTimeMinutes:D2}",
-                    EndTime = $"{request.EndTimeHours:D2}:{request.EndTimeMinutes:D2}",
+                    StartTime = request.StartTime,
+                    EndTime = request.EndTime,
                     Capacity = request.Capacity,
-                    EnrolledStudents = existingCourse.EnrolledStudents, // Preserve existing enrolled students
-                    CourseType = (Models.CourseType)request.CourseType
+                    EnrolledStudents = request.EnrolledStudents.ToList(),
+                    CourseType = request.CourseType
                 };
 
-                await _dbContext.UpdateCourseAsync(updatedCourse);
+                var result = await _repository.UpdateCourseAsync(course);
 
-                return new UpdateCourseResponse
+                return new CourseResponse
                 {
                     Success = true,
                     Message = "Course updated successfully",
-                    Course = MapToCourseDto(updatedCourse)
+                    Course = new CourseData
+                    {
+                        Id = result.Id,
+                        Room = result.Room,
+                        StartTime = result.StartTime,
+                        EndTime = result.EndTime,
+                        Capacity = result.Capacity,
+                        EnrolledStudents = { result.EnrolledStudents },
+                        CourseType = result.CourseType
+                    }
                 };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating course with ID: {CourseId}", request.Id);
-                return new UpdateCourseResponse
+                return new CourseResponse
                 {
                     Success = false,
                     Message = $"Failed to update course: {ex.Message}"
                 };
             }
         }
-        public override async Task<DeleteCourseResponse> DeleteCourse(DeleteCourseRequest request, ServerCallContext context)
+
+        /// <summary>
+        /// Deletes a course by ID
+        /// </summary>
+        public override async Task<DeleteCourseResponse> DeleteCourse(CourseIdRequest request, ServerCallContext context)
         {
             _logger.LogInformation("Deleting course with ID: {CourseId}", request.Id);
 
             try
             {
-                await _dbContext.DeleteCourseAsync(request.Id);
-
+                var success = await _repository.DeleteCourseAsync(request.Id);
                 return new DeleteCourseResponse
                 {
-                    Success = true,
-                    Message = $"Course with ID {request.Id} deleted successfully"
+                    Success = success,
+                    Message = success ? "Course deleted successfully" : "Failed to delete course"
                 };
             }
             catch (Exception ex)
@@ -189,78 +195,40 @@ namespace GrpcDatabaseService.Services
                 };
             }
         }
-        public override async Task<EnrollStudentResponse> EnrollStudent(EnrollStudentRequest request, ServerCallContext context)
+
+        /// <summary>
+        /// Lists all courses
+        /// </summary>
+        public override async Task<CourseListResponse> ListCourses(GetAllCoursesRequest request, ServerCallContext context)
         {
-            _logger.LogInformation("Enrolling student {NeptunCode} in course {CourseId}", request.NeptunCode, request.CourseId);
-            
+            _logger.LogInformation("Listing all courses");
+
             try
             {
-                await _dbContext.EnrollStudentAsync(request.CourseId, request.NeptunCode);
-                var updatedCourse = await _dbContext.GetCourseByIdAsync(request.CourseId);
-                
-                return new EnrollStudentResponse
+                var courses = await _repository.ListCoursesAsync();
+                var response = new CourseListResponse();
+
+                foreach (var course in courses)
                 {
-                    Success = true,
-                    Message = $"Student {request.NeptunCode} enrolled successfully",
-                    Course = MapToCourseDto(updatedCourse)
-                };
+                    response.Courses.Add(new CourseData
+                    {
+                        Id = course.Id,
+                        Room = course.Room,
+                        StartTime = course.StartTime,
+                        EndTime = course.EndTime,
+                        Capacity = course.Capacity,
+                        EnrolledStudents = { course.EnrolledStudents },
+                        CourseType = course.CourseType
+                    });
+                }
+
+                return response;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error enrolling student {NeptunCode} in course {CourseId}", request.NeptunCode, request.CourseId);
-                return new EnrollStudentResponse
-                {
-                    Success = false,
-                    Message = $"Failed to enroll student: {ex.Message}"
-                };
+                _logger.LogError(ex, "Error listing courses");
+                return new CourseListResponse();
             }
-        }
-        public override async Task<RemoveStudentResponse> RemoveStudent(RemoveStudentRequest request, ServerCallContext context)
-        {
-            _logger.LogInformation("Removing student {NeptunCode} from course {CourseId}", request.NeptunCode, request.CourseId);
-            
-            try
-            {
-                await _dbContext.RemoveStudentAsync(request.CourseId, request.NeptunCode);
-                var updatedCourse = await _dbContext.GetCourseByIdAsync(request.CourseId);
-                
-                return new RemoveStudentResponse
-                {
-                    Success = true,
-                    Message = $"Student {request.NeptunCode} removed successfully",
-                    Course = MapToCourseDto(updatedCourse)
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error removing student {NeptunCode} from course {CourseId}", request.NeptunCode, request.CourseId);
-                return new RemoveStudentResponse
-                {
-                    Success = false,
-                    Message = $"Failed to remove student: {ex.Message}"
-                };
-            }
-        }
-
-        private CourseDTO MapToCourseDto(Course course)
-        {
-            var dto = new CourseDTO
-            {
-                Id = course.ID,
-                Room = course.Room,
-                StartTime = course.StartTime,
-                EndTime = course.EndTime,
-                Capacity = course.Capacity,
-                CourseType = (CourseType)course.CourseType
-            };
-
-            // Add enrolled students
-            foreach (var student in course.EnrolledStudents)
-            {
-                dto.EnrolledStudents.Add(student);
-            }
-
-            return dto;
         }
     }
 }

@@ -1,50 +1,67 @@
 ﻿using Grpc.Core;
 using GrpcDatabaseService.Models;
-using GrpcDatabaseService.Services;
+using GrpcDatabaseService.Protos;
+using GrpcDatabaseService.Repositories;
+using GrpcDatabaseService.Repositories.Interfaces;
+using Microsoft.Extensions.Logging;
 
 namespace GrpcDatabaseService.Services
 {
-    public class SubjectService : GrpcDatabaseService.SubjectService.SubjectServiceBase
+    /// <summary>
+    /// Implementation of the Subject GRPC service
+    /// </summary>
+    public class SubjectService : Protos.SubjectService.SubjectServiceBase
     {
-        private readonly DatabaseContext _dbContext;
+        private readonly ISubjectRepository _repository;
         private readonly ILogger<SubjectService> _logger;
 
-        public SubjectService(DatabaseContext dbContext, ILogger<SubjectService> logger)
+        /// <summary>
+        /// Initializes a new instance of the SubjectService class
+        /// </summary>
+        public SubjectService(ISubjectRepository repository, ILogger<SubjectService> logger)
         {
-            _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _repository = repository;
+            _logger = logger;
         }
 
-        public override async Task<CreateSubjectResponse> CreateSubject(CreateSubjectRequest request, ServerCallContext context)
+        /// <summary>
+        /// Creates a new subject
+        /// </summary>
+        public override async Task<SubjectResponse> CreateSubject(SubjectRequest request, ServerCallContext context)
         {
             _logger.LogInformation("Creating subject with ID: {SubjectId}", request.Id);
 
             try
             {
-                // Create subject model from request
                 var subject = new Subject
                 {
-                    ID = request.Id,
+                    Id = request.Id,
                     Owner = request.Owner,
                     Name = request.Name,
-                    Prerequisites = new System.Collections.Generic.List<string>(request.Prerequisites),
-                    Courses = new System.Collections.Generic.List<string>(request.Courses)
+                    Prerequisites = request.Prerequisites.ToList(),
+                    Courses = request.Courses.ToList()
                 };
 
-                await _dbContext.AddSubjectAsync(subject);
+                var result = await _repository.CreateSubjectAsync(subject);
 
-                // Create response
-                return new CreateSubjectResponse
+                return new SubjectResponse
                 {
                     Success = true,
                     Message = "Subject created successfully",
-                    Subject = MapToSubjectDto(subject)
+                    Subject = new SubjectData
+                    {
+                        Id = result.Id,
+                        Owner = result.Owner,
+                        Name = result.Name,
+                        Prerequisites = { result.Prerequisites },
+                        Courses = { result.Courses }
+                    }
                 };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error creating subject with ID: {SubjectId}", request.Id);
-                return new CreateSubjectResponse
+                return new SubjectResponse
                 {
                     Success = false,
                     Message = $"Failed to create subject: {ex.Message}"
@@ -52,34 +69,43 @@ namespace GrpcDatabaseService.Services
             }
         }
 
-        public override async Task<GetSubjectResponse> GetSubject(GetSubjectRequest request, ServerCallContext context)
+        /// <summary>
+        /// Retrieves a subject by ID
+        /// </summary>
+        public override async Task<SubjectResponse> GetSubject(SubjectIdRequest request, ServerCallContext context)
         {
             _logger.LogInformation("Getting subject with ID: {SubjectId}", request.Id);
 
             try
             {
-                var subject = await _dbContext.GetSubjectByIdAsync(request.Id);
-
+                var subject = await _repository.GetSubjectAsync(request.Id);
                 if (subject == null)
                 {
-                    return new GetSubjectResponse
+                    return new SubjectResponse
                     {
                         Success = false,
-                        Message = $"Subject with ID {request.Id} not found"
+                        Message = "Subject not found"
                     };
                 }
 
-                return new GetSubjectResponse
+                return new SubjectResponse
                 {
                     Success = true,
                     Message = "Subject retrieved successfully",
-                    Subject = MapToSubjectDto(subject)
+                    Subject = new SubjectData
+                    {
+                        Id = subject.Id,
+                        Owner = subject.Owner,
+                        Name = subject.Name,
+                        Prerequisites = { subject.Prerequisites },
+                        Courses = { subject.Courses }
+                    }
                 };
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting subject with ID: {SubjectId}", request.Id);
-                return new GetSubjectResponse
+                _logger.LogError(ex, "Error retrieving subject with ID: {SubjectId}", request.Id);
+                return new SubjectResponse
                 {
                     Success = false,
                     Message = $"Failed to retrieve subject: {ex.Message}"
@@ -87,77 +113,44 @@ namespace GrpcDatabaseService.Services
             }
         }
 
-        public override async Task<GetAllSubjectsResponse> GetAllSubjects(GetAllSubjectsRequest request, ServerCallContext context)
-        {
-            _logger.LogInformation("Getting all subjects");
-
-            try
-            {
-                var subjects = await _dbContext.GetAllSubjectsAsync();
-                var response = new GetAllSubjectsResponse
-                {
-                    Success = true,
-                    Message = "Subjects retrieved successfully"
-                };
-
-                foreach (var subject in subjects)
-                {
-                    response.Subjects.Add(MapToSubjectDto(subject));
-                }
-
-                return response;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting all subjects");
-                return new GetAllSubjectsResponse
-                {
-                    Success = false,
-                    Message = $"Failed to retrieve subjects: {ex.Message}"
-                };
-            }
-        }
-
-        public override async Task<UpdateSubjectResponse> UpdateSubject(UpdateSubjectRequest request, ServerCallContext context)
+        /// <summary>
+        /// Updates an existing subject
+        /// </summary>
+        public override async Task<SubjectResponse> UpdateSubject(SubjectRequest request, ServerCallContext context)
         {
             _logger.LogInformation("Updating subject with ID: {SubjectId}", request.Id);
 
             try
             {
-                var existingSubject = await _dbContext.GetSubjectByIdAsync(request.Id);
-
-                if (existingSubject == null)
+                var subject = new Subject
                 {
-                    return new UpdateSubjectResponse
-                    {
-                        Success = false,
-                        Message = $"Subject with ID {request.Id} not found"
-                    };
-                }
-
-                // Update subject with new values
-                var updatedSubject = new Subject
-                {
-                    ID = request.Id,
+                    Id = request.Id,
                     Owner = request.Owner,
                     Name = request.Name,
-                    Prerequisites = new System.Collections.Generic.List<string>(request.Prerequisites),
-                    Courses = new System.Collections.Generic.List<string>(request.Courses)
+                    Prerequisites = request.Prerequisites.ToList(),
+                    Courses = request.Courses.ToList()
                 };
 
-                await _dbContext.UpdateSubjectAsync(updatedSubject);
+                var result = await _repository.UpdateSubjectAsync(subject);
 
-                return new UpdateSubjectResponse
+                return new SubjectResponse
                 {
                     Success = true,
                     Message = "Subject updated successfully",
-                    Subject = MapToSubjectDto(updatedSubject)
+                    Subject = new SubjectData
+                    {
+                        Id = result.Id,
+                        Owner = result.Owner,
+                        Name = result.Name,
+                        Prerequisites = { result.Prerequisites },
+                        Courses = { result.Courses }
+                    }
                 };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating subject with ID: {SubjectId}", request.Id);
-                return new UpdateSubjectResponse
+                return new SubjectResponse
                 {
                     Success = false,
                     Message = $"Failed to update subject: {ex.Message}"
@@ -165,18 +158,20 @@ namespace GrpcDatabaseService.Services
             }
         }
 
-        public override async Task<DeleteSubjectResponse> DeleteSubject(DeleteSubjectRequest request, ServerCallContext context)
+        /// <summary>
+        /// Deletes a subject by ID
+        /// </summary>
+        public override async Task<DeleteSubjectResponse> DeleteSubject(SubjectIdRequest request, ServerCallContext context)
         {
             _logger.LogInformation("Deleting subject with ID: {SubjectId}", request.Id);
 
             try
             {
-                await _dbContext.DeleteSubjectAsync(request.Id);
-
+                var success = await _repository.DeleteSubjectAsync(request.Id);
                 return new DeleteSubjectResponse
                 {
-                    Success = true,
-                    Message = $"Subject with ID {request.Id} deleted successfully"
+                    Success = success,
+                    Message = success ? "Subject deleted successfully" : "Failed to delete subject"
                 };
             }
             catch (Exception ex)
@@ -190,137 +185,37 @@ namespace GrpcDatabaseService.Services
             }
         }
 
-        public override async Task<AddCourseResponse> AddCourse(AddCourseRequest request, ServerCallContext context)
+        /// <summary>
+        /// Lists all subjects
+        /// </summary>
+        public override async Task<SubjectListResponse> ListSubjects(GetAllSubjectsRequest request, ServerCallContext context)
         {
-            _logger.LogInformation("Adding course {CourseId} to subject {SubjectId}", request.CourseId, request.SubjectId);
+            _logger.LogInformation("Listing all subjects");
 
             try
             {
-                await _dbContext.AddCourseToSubjectAsync(request.SubjectId, request.CourseId);
-                var updatedSubject = await _dbContext.GetSubjectByIdAsync(request.SubjectId);
+                var subjects = await _repository.ListSubjectsAsync();
+                var response = new SubjectListResponse();
 
-                return new AddCourseResponse
+                foreach (var subject in subjects)
                 {
-                    Success = true,
-                    Message = $"Course {request.CourseId} added to subject {request.SubjectId} successfully",
-                    Subject = MapToSubjectDto(updatedSubject)
-                };
+                    response.Subjects.Add(new SubjectData
+                    {
+                        Id = subject.Id,
+                        Owner = subject.Owner,
+                        Name = subject.Name,
+                        Prerequisites = { subject.Prerequisites },
+                        Courses = { subject.Courses }
+                    });
+                }
+
+                return response;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error adding course {CourseId} to subject {SubjectId}", request.CourseId, request.SubjectId);
-                return new AddCourseResponse
-                {
-                    Success = false,
-                    Message = $"Failed to add course to subject: {ex.Message}"
-                };
+                _logger.LogError(ex, "Error listing subjects");
+                return new SubjectListResponse();
             }
-        }
-
-        public override async Task<RemoveCourseResponse> RemoveCourse(RemoveCourseRequest request, ServerCallContext context)
-        {
-            _logger.LogInformation("Removing course {CourseId} from subject {SubjectId}", request.CourseId, request.SubjectId);
-
-            try
-            {
-                await _dbContext.RemoveCourseFromSubjectAsync(request.SubjectId, request.CourseId);
-                var updatedSubject = await _dbContext.GetSubjectByIdAsync(request.SubjectId);
-
-                return new RemoveCourseResponse
-                {
-                    Success = true,
-                    Message = $"Course {request.CourseId} removed from subject {request.SubjectId} successfully",
-                    Subject = MapToSubjectDto(updatedSubject)
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error removing course {CourseId} from subject {SubjectId}", request.CourseId, request.SubjectId);
-                return new RemoveCourseResponse
-                {
-                    Success = false,
-                    Message = $"Failed to remove course from subject: {ex.Message}"
-                };
-            }
-        }
-
-        public override async Task<AddPrerequisiteResponse> AddPrerequisite(AddPrerequisiteRequest request, ServerCallContext context)
-        {
-            _logger.LogInformation("Adding prerequisite {PrerequisiteId} to subject {SubjectId}", request.PrerequisiteId, request.SubjectId);
-
-            try
-            {
-                await _dbContext.AddPrerequisiteToSubjectAsync(request.SubjectId, request.PrerequisiteId);
-                var updatedSubject = await _dbContext.GetSubjectByIdAsync(request.SubjectId);
-
-                return new AddPrerequisiteResponse
-                {
-                    Success = true,
-                    Message = $"Prerequisite {request.PrerequisiteId} added to subject {request.SubjectId} successfully",
-                    Subject = MapToSubjectDto(updatedSubject)
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error adding prerequisite {PrerequisiteId} to subject {SubjectId}", request.PrerequisiteId, request.SubjectId);
-                return new AddPrerequisiteResponse
-                {
-                    Success = false,
-                    Message = $"Failed to add prerequisite to subject: {ex.Message}"
-                };
-            }
-        }
-
-        public override async Task<RemovePrerequisiteResponse> RemovePrerequisite(RemovePrerequisiteRequest request, ServerCallContext context)
-        {
-            _logger.LogInformation("Removing prerequisite {PrerequisiteId} from subject {SubjectId}", request.PrerequisiteId, request.SubjectId);
-
-            try
-            {
-                await _dbContext.RemovePrerequisiteFromSubjectAsync(request.SubjectId, request.PrerequisiteId);
-                var updatedSubject = await _dbContext.GetSubjectByIdAsync(request.SubjectId);
-
-                return new RemovePrerequisiteResponse
-                {
-                    Success = true,
-                    Message = $"Prerequisite {request.PrerequisiteId} removed from subject {request.SubjectId} successfully",
-                    Subject = MapToSubjectDto(updatedSubject)
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error removing prerequisite {PrerequisiteId} from subject {SubjectId}", request.PrerequisiteId, request.SubjectId);
-                return new RemovePrerequisiteResponse
-                {
-                    Success = false,
-                    Message = $"Failed to remove prerequisite from subject: {ex.Message}"
-                };
-            }
-        }
-
-        // Helper method to map from domain model to DTO
-        private SubjectDTO MapToSubjectDto(Subject subject)
-        {
-            var dto = new SubjectDTO
-            {
-                Id = subject.ID,
-                Owner = subject.Owner,
-                Name = subject.Name
-            };
-
-            // Add prerequisites
-            foreach (var prerequisite in subject.Prerequisites)
-            {
-                dto.Prerequisites.Add(prerequisite);
-            }
-
-            // Add courses
-            foreach (var course in subject.Courses)
-            {
-                dto.Courses.Add(course);
-            }
-
-            return dto;
         }
     }
 }

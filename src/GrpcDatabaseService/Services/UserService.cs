@@ -1,49 +1,65 @@
-﻿using Grpc.Core;
+﻿using Google.Protobuf.WellKnownTypes;
+using Grpc.Core;
 using GrpcDatabaseService.Models;
-using GrpcDatabaseService.Services;
+using GrpcDatabaseService.Protos;
+using GrpcDatabaseService.Repositories;
+using GrpcDatabaseService.Repositories.Interfaces;
+using Microsoft.Extensions.Logging;
 
 namespace GrpcDatabaseService.Services
 {
-    public class UserService : GrpcDatabaseService.UserService.UserServiceBase
+    /// <summary>
+    /// Implementation of the User GRPC service
+    /// </summary>
+    public class UserService : Protos.UserService.UserServiceBase
     {
-        private readonly DatabaseContext _dbContext;
+        private readonly IUserRepository _repository;
         private readonly ILogger<UserService> _logger;
 
-        public UserService(DatabaseContext dbContext, ILogger<UserService> logger)
+        /// <summary>
+        /// Initializes a new instance of the UserService class
+        /// </summary>
+        public UserService(IUserRepository repository, ILogger<UserService> logger)
         {
-            _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _repository = repository;
+            _logger = logger;
         }
 
-        public override async Task<CreateUserResponse> CreateUser(CreateUserRequest request, ServerCallContext context)
+        /// <summary>
+        /// Creates a new user
+        /// </summary>
+        public override async Task<UserResponse> CreateUser(UserRequest request, ServerCallContext context)
         {
             _logger.LogInformation("Creating user with NEPTUN code: {NeptunCode}", request.NeptunCode);
 
             try
             {
-                // Create user model from request
                 var user = new User
                 {
                     NeptunCode = request.NeptunCode,
                     Name = request.Name,
                     Email = request.Email,
-                    Password = request.Password // In a real app, password should be hashed
+                    Password = request.Password
                 };
 
-                await _dbContext.AddUserAsync(user);
+                var result = await _repository.CreateUserAsync(user);
 
-                // Create response
-                return new CreateUserResponse
+                return new UserResponse
                 {
                     Success = true,
                     Message = "User created successfully",
-                    User = MapToUserDto(user)
+                    User = new UserData
+                    {
+                        NeptunCode = result.NeptunCode,
+                        Name = result.Name,
+                        Email = result.Email
+                    }
                 };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error creating user with NEPTUN code: {NeptunCode}", request.NeptunCode);
-                return new CreateUserResponse
+                return new UserResponse
                 {
                     Success = false,
                     Message = $"Failed to create user: {ex.Message}"
@@ -51,34 +67,41 @@ namespace GrpcDatabaseService.Services
             }
         }
 
-        public override async Task<GetUserResponse> GetUser(GetUserRequest request, ServerCallContext context)
+        /// <summary>
+        /// Retrieves a user by NEPTUN code
+        /// </summary>
+        public override async Task<UserResponse> GetUser(UserIdRequest request, ServerCallContext context)
         {
             _logger.LogInformation("Getting user with NEPTUN code: {NeptunCode}", request.NeptunCode);
 
             try
             {
-                var user = await _dbContext.GetUserByIdAsync(request.NeptunCode);
-
+                var user = await _repository.GetUserAsync(request.NeptunCode);
                 if (user == null)
                 {
-                    return new GetUserResponse
+                    return new UserResponse
                     {
                         Success = false,
-                        Message = $"User with NEPTUN code {request.NeptunCode} not found"
+                        Message = "User not found"
                     };
                 }
 
-                return new GetUserResponse
+                return new UserResponse
                 {
                     Success = true,
                     Message = "User retrieved successfully",
-                    User = MapToUserDto(user)
+                    User = new UserData
+                    {
+                        NeptunCode = user.NeptunCode,
+                        Name = user.Name,
+                        Email = user.Email
+                    }
                 };
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting user with NEPTUN code: {NeptunCode}", request.NeptunCode);
-                return new GetUserResponse
+                _logger.LogError(ex, "Error retrieving user with NEPTUN code: {NeptunCode}", request.NeptunCode);
+                return new UserResponse
                 {
                     Success = false,
                     Message = $"Failed to retrieve user: {ex.Message}"
@@ -86,76 +109,41 @@ namespace GrpcDatabaseService.Services
             }
         }
 
-        public override async Task<GetAllUsersResponse> GetAllUsers(GetAllUsersRequest request, ServerCallContext context)
-        {
-            _logger.LogInformation("Getting all users");
-
-            try
-            {
-                var users = await _dbContext.GetAllUsersAsync();
-                var response = new GetAllUsersResponse
-                {
-                    Success = true,
-                    Message = "Users retrieved successfully"
-                };
-
-                foreach (var user in users)
-                {
-                    response.Users.Add(MapToUserDto(user));
-                }
-
-                return response;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting all users");
-                return new GetAllUsersResponse
-                {
-                    Success = false,
-                    Message = $"Failed to retrieve users: {ex.Message}"
-                };
-            }
-        }
-
-        public override async Task<UpdateUserResponse> UpdateUser(UpdateUserRequest request, ServerCallContext context)
+        /// <summary>
+        /// Updates an existing user
+        /// </summary>
+        public override async Task<UserResponse> UpdateUser(UserRequest request, ServerCallContext context)
         {
             _logger.LogInformation("Updating user with NEPTUN code: {NeptunCode}", request.NeptunCode);
 
             try
             {
-                var existingUser = await _dbContext.GetUserByIdAsync(request.NeptunCode);
-
-                if (existingUser == null)
-                {
-                    return new UpdateUserResponse
-                    {
-                        Success = false,
-                        Message = $"User with NEPTUN code {request.NeptunCode} not found"
-                    };
-                }
-
-                // Update user with new values
-                var updatedUser = new User
+                var user = new User
                 {
                     NeptunCode = request.NeptunCode,
                     Name = request.Name,
                     Email = request.Email,
-                    Password = request.Password // In a real app, password should be hashed
+                    Password = request.Password
                 };
 
-                await _dbContext.UpdateUserAsync(updatedUser);
+                var result = await _repository.UpdateUserAsync(user);
 
-                return new UpdateUserResponse
+                return new UserResponse
                 {
                     Success = true,
                     Message = "User updated successfully",
-                    User = MapToUserDto(updatedUser)
+                    User = new UserData
+                    {
+                        NeptunCode = result.NeptunCode,
+                        Name = result.Name,
+                        Email = result.Email
+                    }
                 };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating user with NEPTUN code: {NeptunCode}", request.NeptunCode);
-                return new UpdateUserResponse
+                return new UserResponse
                 {
                     Success = false,
                     Message = $"Failed to update user: {ex.Message}"
@@ -163,24 +151,26 @@ namespace GrpcDatabaseService.Services
             }
         }
 
-        public override async Task<DeleteUserResponse> DeleteUser(DeleteUserRequest request, ServerCallContext context)
+        /// <summary>
+        /// Deletes a user by NEPTUN code
+        /// </summary>
+        public override async Task<DeleteResponse> DeleteUser(UserIdRequest request, ServerCallContext context)
         {
             _logger.LogInformation("Deleting user with NEPTUN code: {NeptunCode}", request.NeptunCode);
 
             try
             {
-                await _dbContext.DeleteUserAsync(request.NeptunCode);
-
-                return new DeleteUserResponse
+                var success = await _repository.DeleteUserAsync(request.NeptunCode);
+                return new DeleteResponse
                 {
-                    Success = true,
-                    Message = $"User with NEPTUN code {request.NeptunCode} deleted successfully"
+                    Success = success,
+                    Message = success ? "User deleted successfully" : "Failed to delete user"
                 };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error deleting user with NEPTUN code: {NeptunCode}", request.NeptunCode);
-                return new DeleteUserResponse
+                return new DeleteResponse
                 {
                     Success = false,
                     Message = $"Failed to delete user: {ex.Message}"
@@ -188,16 +178,35 @@ namespace GrpcDatabaseService.Services
             }
         }
 
-        // Helper method to map from domain model to DTO
-        private UserDTO MapToUserDto(User user)
+        /// <summary>
+        /// Lists all users
+        /// </summary>
+        public override async Task<UserListResponse> ListUsers(GetAllUsersRequest request, ServerCallContext context)
         {
-            return new UserDTO
+            _logger.LogInformation("Listing all users");
+
+            try
             {
-                NeptunCode = user.NeptunCode,
-                Name = user.Name,
-                Email = user.Email
-                // Note: We don't include password in the DTO for security reasons
-            };
+                var users = await _repository.ListUsersAsync();
+                var response = new UserListResponse();
+
+                foreach (var user in users)
+                {
+                    response.Users.Add(new UserData
+                    {
+                        NeptunCode = user.NeptunCode,
+                        Name = user.Name,
+                        Email = user.Email
+                    });
+                }
+
+                return response;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error listing users");
+                return new UserListResponse();
+            }
         }
     }
 }
