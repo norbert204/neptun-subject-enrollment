@@ -104,7 +104,7 @@ namespace GrpcDatabaseService.Services
                         StartTime = course.StartTime,
                         EndTime = course.EndTime,
                         Capacity = course.Capacity,
-                        EnrolledStudents = { course.EnrolledStudents },
+                        EnrolledStudents = { course.EnrolledStudents ?? [] },
                         CourseType = course.CourseType
                     }
                 };
@@ -217,7 +217,7 @@ namespace GrpcDatabaseService.Services
                         StartTime = course.StartTime,
                         EndTime = course.EndTime,
                         Capacity = course.Capacity,
-                        EnrolledStudents = { course.EnrolledStudents },
+                        EnrolledStudents = { course.EnrolledStudents ?? [] },
                         CourseType = course.CourseType
                     });
                 }

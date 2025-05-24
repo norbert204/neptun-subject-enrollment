@@ -48,7 +48,7 @@ public class SubjectService : Subject.SubjectBase
                 };
             }
 
-            if (!await _cacheService.CanStudentEnrollToCourseAsync(request.StudentId, request.CourseId))
+            if (!await _cacheService.CanStudentEnrollToCourseAsync(request.CourseId, request.StudentId))
             {
                 return new EnrollToCourseResponse
                 {
