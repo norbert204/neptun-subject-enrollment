@@ -47,7 +47,7 @@ public class CacheService : ICacheService
         return result.StudentIds.Count >= 18;
     }
 
-    public async Task<bool> EnrollToCourseAsync(string courseId, string studentId)
+    public async Task EnrollToCourseAsync(string courseId, string studentId)
     {
         var request = new RegisterRequest
         {
@@ -61,8 +61,6 @@ public class CacheService : ICacheService
         {
             throw new CacheServiceException(result.Message);
         }
-
-        return result.Success;
     }
 
     public async Task<bool> IsStudentAlreadyEnrolledAsync(string courseId, string studentId)

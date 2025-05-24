@@ -1,4 +1,5 @@
 using GrpcCachingService;
+using GrpcDatabaseService.Protos;
 using NeptunKiller.SubjectService.Options;
 using NeptunKiller.SubjectService.Services;
 
@@ -7,12 +8,53 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddGrpc();
 builder.Services.AddGrpcReflection();
 
-builder.Services.AddOptions<ServiceOptions>("Services");
+builder.Services.Configure<ServiceOptions>(builder.Configuration.GetSection("Services"));
 
 var serviceOptions = builder.Configuration.GetSection("Services").Get<ServiceOptions>();
 
-builder.Services.AddGrpcClient<CourseRegistrationService.CourseRegistrationServiceClient>(
-    x => x.Address = serviceOptions.CachingServiceUri);
+builder.Services.AddGrpcClient<CourseRegistrationService.CourseRegistrationServiceClient>(x => x.Address = serviceOptions.CachingServiceUri)
+    .ConfigurePrimaryHttpMessageHandler(() =>
+    {
+        var handler = new HttpClientHandler
+        {
+            ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+        };
+
+        return handler;
+    });
+
+builder.Services.AddGrpcClient<UserService.UserServiceClient>(x => x.Address = serviceOptions.DatabaseServiceUri)
+    .ConfigurePrimaryHttpMessageHandler(() =>
+    {
+        var handler = new HttpClientHandler
+        {
+            ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+        };
+
+        return handler;
+    });
+
+builder.Services.AddGrpcClient<GrpcDatabaseService.Protos.SubjectService.SubjectServiceClient>(x => x.Address = serviceOptions.DatabaseServiceUri)
+    .ConfigurePrimaryHttpMessageHandler(() =>
+    {
+        var handler = new HttpClientHandler
+        {
+            ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+        };
+
+        return handler;
+    });
+
+builder.Services.AddGrpcClient<CourseService.CourseServiceClient>(x => x.Address = serviceOptions.DatabaseServiceUri)
+    .ConfigurePrimaryHttpMessageHandler(() =>
+    {
+        var handler = new HttpClientHandler
+        {
+            ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+        };
+
+        return handler;
+    });
 
 builder.Services.AddSingleton<ICacheService, CacheService>();
 

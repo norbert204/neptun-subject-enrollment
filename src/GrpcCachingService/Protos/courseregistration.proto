@@ -19,6 +19,9 @@ service CourseRegistrationService {
   rpc InitializeStudents (InitializeStudentsRequest) returns (InitializeStudentsResponse);
   rpc InitializeAll (InitializeAllRequest) returns (InitializeAllResponse);
 
+  rpc InitializeCourse (InitializeCourseRequest) returns (InitializeCourseResponse);
+  rpc InitializeStudent (InitializeStudentRequest) returns (InitializeStudentResponse);
+  
   rpc GetAllCoursesWithStudents (GetAllCoursesRequest2) returns (AllCoursesWithStudentsResponse);
   rpc GetAllStudentsWithEligibleCourses (GetAllStudentsRequest) returns (AllStudentsWithEligibleCoursesResponse);
 }
@@ -72,7 +75,7 @@ message CourseEnrollmentResponse {
 }
 
 message InitializeCoursesRequest {
-  bool force_update = 1; // Ha true, akkor a már létezõ tárgyak adatait is frissíti
+  bool force_update = 1; // Ha true, akkor a mï¿½r lï¿½tezï¿½ tï¿½rgyak adatait is frissï¿½ti
 }
 
 message InitializeCoursesResponse {
@@ -109,7 +112,7 @@ message EligibleCoursesResponse {
 }
 
 message GetAllCoursesRequest2 {
-  // Üres kérés
+  // ï¿½res kï¿½rï¿½s
 }
 
 message CourseWithStudents {
@@ -127,7 +130,7 @@ message AllCoursesWithStudentsResponse {
 }
 
 message GetAllStudentsRequest {
-  // Üres kérés
+  // ï¿½res kï¿½rï¿½s
 }
 
 message StudentWithCourses {
@@ -139,4 +142,24 @@ message AllStudentsWithEligibleCoursesResponse {
   repeated StudentWithCourses students = 1;
   bool success = 2;
   string message = 3;
+}
+
+message InitializeCourseRequest {
+  string courseId = 1;
+  int32 maxStudents = 2;
+}
+
+message InitializeCourseResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message InitializeStudentRequest {
+  string neptunCode = 1;
+  repeated string courseId = 2;
+}
+
+message InitializeStudentResponse {
+  bool success = 1;
+  string message = 2;
 }

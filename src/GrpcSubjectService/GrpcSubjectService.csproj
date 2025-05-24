@@ -10,6 +10,9 @@
     <ItemGroup>
         <Protobuf Include="Protos\subject.proto" GrpcServices="Server" />
         <Protobuf Include="..\GrpcCachingService\Protos\courseregistration.proto" GrpcServices="Client" />
+        <Protobuf Include="..\GrpcDatabaseService\Protos\subjectService.proto" GrpcServices="Client" />
+        <Protobuf Include="..\GrpcDatabaseService\Protos\userService.proto" GrpcServices="Client" />
+        <Protobuf Include="..\GrpcDatabaseService\Protos\courseService.proto" GrpcServices="Client" />
     </ItemGroup>
 
     <ItemGroup>

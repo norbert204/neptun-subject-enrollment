@@ -1,4 +1,7 @@
+using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
+using GrpcCachingService;
+using GrpcDatabaseService.Protos;
 using NeptunKiller.SubjectService.Exceptions;
 using NeptunKiller.SubjectService.Services;
 using SubjectService;
@@ -9,11 +12,25 @@ public class SubjectService : Subject.SubjectBase
 {
     private readonly ILogger<SubjectService> _logger;
     private readonly ICacheService _cacheService;
+    private readonly GrpcDatabaseService.Protos.SubjectService.SubjectServiceClient _databaseSubjectService;
+    private readonly UserService.UserServiceClient _databaseUserService;
+    private readonly CourseService.CourseServiceClient _databaseCourseService;
+    private readonly CourseRegistrationService.CourseRegistrationServiceClient _courseRegistrationServiceClient;
 
-    public SubjectService(ILogger<SubjectService> logger, ICacheService cacheService)
+    public SubjectService(
+        ILogger<SubjectService> logger,
+        ICacheService cacheService,
+        GrpcDatabaseService.Protos.SubjectService.SubjectServiceClient databaseSubjectService,
+        UserService.UserServiceClient databaseUserService,
+        CourseRegistrationService.CourseRegistrationServiceClient courseRegistrationServiceClient,
+        CourseService.CourseServiceClient databaseCourseService)
     {
         _logger = logger;
         _cacheService = cacheService;
+        _databaseSubjectService = databaseSubjectService;
+        _databaseUserService = databaseUserService;
+        _courseRegistrationServiceClient = courseRegistrationServiceClient;
+        _databaseCourseService = databaseCourseService;
     }
 
     public override async Task<EnrollToCourseResponse> EnrollToCourse(EnrollToCourseRequest request, ServerCallContext context)
@@ -31,15 +48,6 @@ public class SubjectService : Subject.SubjectBase
                 };
             }
 
-            if (await _cacheService.IsStudentAlreadyEnrolledAsync(request.StudentId, request.CourseId))
-            {
-                return new EnrollToCourseResponse
-                {
-                    Success = false,
-                    Message = "Student is already enrolled to this course",
-                };
-            }
-
             if (!await _cacheService.CanStudentEnrollToCourseAsync(request.StudentId, request.CourseId))
             {
                 return new EnrollToCourseResponse
@@ -49,14 +57,7 @@ public class SubjectService : Subject.SubjectBase
                 };
             }
 
-            if (!await _cacheService.EnrollToCourseAsync(request.CourseId, request.StudentId))
-            {
-                return new EnrollToCourseResponse
-                {
-                    Success = false,
-                    Message = "Course is full",
-                };
-            }
+            await _cacheService.EnrollToCourseAsync(request.CourseId, request.StudentId);
 
             return new EnrollToCourseResponse
             {
@@ -72,5 +73,49 @@ public class SubjectService : Subject.SubjectBase
                 Message = ex.Message,
             };
         }
+    }
+
+    public override async Task<EnrollmentInitializationResponse> InitializeSubjectEnrollment(Empty request, ServerCallContext context)
+    {
+        var students = await _databaseUserService.ListUsersAsync(new GetAllUsersRequest());
+        var subjects = await _databaseSubjectService.ListSubjectsAsync(new GetAllSubjectsRequest());
+
+        await Parallel.ForEachAsync(subjects.Subjects.ToList(), async (subject, _) =>
+        {
+            foreach (var course in subject.Courses)
+            {
+                var courseData = await _databaseCourseService.GetCourseAsync(
+                    new CourseIdRequest
+                    {
+                        Id = course,
+                    });
+
+                await _courseRegistrationServiceClient.InitializeCourseAsync(
+                    new InitializeCourseRequest
+                    {
+                        CourseId = course,
+                        MaxStudents = courseData.Course.Capacity,
+                    });
+            }
+        });
+
+        await Parallel.ForEachAsync(students.Users, async (student, _) =>
+        {
+            // TODO: Only register courses that are truly eligible for students
+            var courses = subjects.Subjects.SelectMany(x => x.Courses);
+
+            await _courseRegistrationServiceClient.InitializeStudentAsync(
+                new InitializeStudentRequest
+                {
+                    NeptunCode = student.NeptunCode,
+                    CourseId = { courses },
+                });
+        });
+
+        return new EnrollmentInitializationResponse
+        {
+            Success = true,
+            Message = "Successful enrollment initialization",
+        };
     }
 }
