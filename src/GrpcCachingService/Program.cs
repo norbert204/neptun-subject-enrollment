@@ -25,11 +25,13 @@ public class Program
         builder.Services.AddSingleton<ICourseRegistrationRepository, CourseRegistrationRepository>();
         builder.Services.AddSingleton<ICourseDataServiceClient, CourseDataServiceClient>();
         builder.Services.AddSingleton<ICourseInitializerService, CourseInitializerService>();
+        builder.Services.AddSingleton<IAuthRepository, AuthRepository>();
 
         var app = builder.Build();
 
         app.MapGrpcService<RedisServiceImpl>();
         app.MapGrpcService<CourseRegistrationServiceImpl>();
+        app.MapGrpcService<AuthDataServiceImpl>();
 
         app.MapGet("/", () => "Communication with gRPC endpoints must be made through a gRPC client. To learn how to create a client, visit: https://go.microsoft.com/fwlink/?linkid=2086909");
 

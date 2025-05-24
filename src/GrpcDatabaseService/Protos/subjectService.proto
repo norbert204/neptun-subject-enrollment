@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+option csharp_namespace = "GrpcDatabaseService.Protos";
+
+package subject;
+
+// Subject service definition
+service SubjectService {
+  rpc CreateSubject (SubjectRequest) returns (SubjectResponse);
+  rpc GetSubject (SubjectIdRequest) returns (SubjectResponse);
+  rpc UpdateSubject (SubjectRequest) returns (SubjectResponse);
+  rpc DeleteSubject (SubjectIdRequest) returns (DeleteSubjectResponse);
+  rpc ListSubjects (GetAllSubjectsRequest) returns (SubjectListResponse);
+}
+
+message SubjectRequest {
+  string id = 1;
+  string owner = 2;
+  string name = 3;
+  repeated string prerequisites = 4;
+  repeated string courses = 5;
+}
+
+message SubjectResponse {
+  bool success = 1;
+  string message = 2;
+  SubjectData subject = 3;
+}
+
+message SubjectData {
+  string id = 1;
+  string owner = 2;
+  string name = 3;
+  repeated string prerequisites = 4;
+  repeated string courses = 5;
+}
+
+message SubjectIdRequest {
+  string id = 1;
+}
+
+message SubjectListResponse {
+  repeated SubjectData subjects = 1;
+}
+
+message GetAllSubjectsRequest {
+	//Empty request
+}
+
+message DeleteSubjectResponse {
+  bool success = 1;
+  string message = 2;
+}

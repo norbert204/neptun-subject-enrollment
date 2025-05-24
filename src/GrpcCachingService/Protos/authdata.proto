@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+option csharp_namespace = "GrpcCachingService";
+
+package authdata;
+
+service AuthDataService {
+  rpc AddRefreshTokenToCache (RefreshTokenRegistrationRequest) returns (GenericResponse);
+  rpc RemoveRefreshTokenFromCache (RemoveRefreshTokenRequest) returns (GenericResponse);
+  rpc GetRefreshTokenFromCache (GetRefreshTokenRequest) returns (RefreshTokenResponse);
+}
+
+message RefreshTokenRegistrationRequest {
+  string jwtId = 1;
+  string refreshToken = 2;
+  int32 refreshTokenLifetime = 3;
+}
+
+message RemoveRefreshTokenRequest {
+  string refreshToken = 1;
+}
+
+message GetRefreshTokenRequest {
+  string refreshToken = 1;
+}
+
+message RefreshTokenResponse {
+  bool success = 1;
+  string jwtId = 2;
+}
+
+message GenericResponse {
+  bool success = 1;
+  string message = 2;
+}

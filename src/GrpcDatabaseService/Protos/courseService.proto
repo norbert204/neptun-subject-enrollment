@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+option csharp_namespace = "GrpcDatabaseService.Protos";
+
+package course;
+
+// Course service definition
+service CourseService {
+  rpc CreateCourse (CourseRequest) returns (CourseResponse);
+  rpc GetCourse (CourseIdRequest) returns (CourseResponse);
+  rpc UpdateCourse (CourseRequest) returns (CourseResponse);
+  rpc DeleteCourse (CourseIdRequest) returns (DeleteCourseResponse);
+  rpc ListCourses (GetAllCoursesRequest) returns (CourseListResponse);
+}
+
+message CourseRequest {
+  string id = 1;
+  string room = 2;
+  string start_time = 3;
+  string end_time = 4;
+  int32 capacity = 5;
+  repeated string enrolled_students = 6;
+  string course_type = 7;
+}
+
+message CourseResponse {
+  bool success = 1;
+  string message = 2;
+  CourseData course = 3;
+}
+
+message CourseData {
+  string id = 1;
+  string room = 2;
+  string start_time = 3;
+  string end_time = 4;
+  int32 capacity = 5;
+  repeated string enrolled_students = 6;
+  string course_type = 7;
+}
+
+message CourseIdRequest {
+  string id = 1;
+}
+
+message CourseListResponse {
+  repeated CourseData courses = 1;
+}
+
+message GetAllCoursesRequest {
+	//Empty request
+}
+
+message DeleteCourseResponse {
+  bool success = 1;
+  string message = 2;
+}
