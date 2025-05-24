@@ -16,7 +16,7 @@ namespace GrpcDatabaseService.Services
         private readonly ILogger<SubjectService> _logger;
 
         /// <summary>
-        /// Initializes a new instance of the SubjectService class
+        /// Initializes a new instance of the GrpcSubjectService class
         /// </summary>
         public SubjectService(ISubjectRepository repository, ILogger<SubjectService> logger)
         {

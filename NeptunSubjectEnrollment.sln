@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SubjectService", "src\SubjectService\SubjectService.csproj", "{C659F3C9-F14A-4EC6-848E-11123A0A6CF5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GrpcSubjectService", "src\GrpcSubjectService\GrpcSubjectService.csproj", "{C659F3C9-F14A-4EC6-848E-11123A0A6CF5}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GrpcCachingService", "src\GrpcCachingService\GrpcCachingService.csproj", "{6D208208-D91C-4709-949C-FAA0C1CB2B1D}"
 EndProject
