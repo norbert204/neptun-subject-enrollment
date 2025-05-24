@@ -94,7 +94,8 @@ namespace GrpcDatabaseService.Services
                     {
                         NeptunCode = user.NeptunCode,
                         Name = user.Name,
-                        Email = user.Email
+                        Email = user.Email,
+                        Password = user.Password
                     }
                 };
             }
@@ -196,7 +197,8 @@ namespace GrpcDatabaseService.Services
                     {
                         NeptunCode = user.NeptunCode,
                         Name = user.Name,
-                        Email = user.Email
+                        Email = user.Email,
+                        //Password = user.Password // Consider removing this in production
                     });
                 }
 
