@@ -16,7 +16,7 @@ namespace GrpcDatabaseService.Services
         private readonly ILogger<SubjectService> _logger;
 
         /// <summary>
-        /// Initializes a new instance of the SubjectService class
+        /// Initializes a new instance of the GrpcSubjectService class
         /// </summary>
         public SubjectService(ISubjectRepository repository, ILogger<SubjectService> logger)
         {
@@ -142,8 +142,8 @@ namespace GrpcDatabaseService.Services
                         Id = result.Id,
                         Owner = result.Owner,
                         Name = result.Name,
-                        Prerequisites = { result.Prerequisites },
-                        Courses = { result.Courses }
+                        Prerequisites = { result.Prerequisites ?? [] },
+                        Courses = { result.Courses ?? [] }
                     }
                 };
             }
@@ -204,8 +204,8 @@ namespace GrpcDatabaseService.Services
                         Id = subject.Id,
                         Owner = subject.Owner,
                         Name = subject.Name,
-                        Prerequisites = { subject.Prerequisites },
-                        Courses = { subject.Courses }
+                        Prerequisites = { subject.Prerequisites ?? [] },
+                        Courses = { subject.Courses ?? [] }
                     });
                 }
 

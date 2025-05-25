@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+option csharp_namespace = "SubjectService";
+
+package greet;
+
+service Subject {
+  rpc EnrollToCourse (EnrollToCourseRequest) returns (EnrollToCourseResponse);
+  rpc InitializeSubjectEnrollment (google.protobuf.Empty) returns (EnrollmentInitializationResponse);
+}
+
+message EnrollToCourseRequest {
+  string student_id = 1;
+  string course_id = 2;
+}
+
+message EnrollToCourseResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message EnrollmentInitializationResponse {
+  bool success = 1;
+  string message = 2;
+}

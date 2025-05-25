@@ -248,4 +248,44 @@ public class CourseRegistrationServiceImpl : CourseRegistrationService.CourseReg
 
         return response;
     }
+
+    public override async Task<InitializeStudentResponse> InitializeStudent(InitializeStudentRequest request, ServerCallContext context)
+    {
+        var result = await _repository.InitializeStudentEligibleCoursesAsync(request.NeptunCode, request.CourseId);
+
+        if (!result)
+        {
+            return new InitializeStudentResponse
+            {
+                Success = false,
+                Message = $"Failed to initialize student with ID {request.NeptunCode}",
+            };
+        }
+        
+        return new InitializeStudentResponse
+        {
+            Success = true,
+            Message = $"Succesfully initialized student with ID {request.NeptunCode}",
+        };
+    }
+
+    public override async Task<InitializeCourseResponse> InitializeCourse(InitializeCourseRequest request, ServerCallContext context)
+    {
+        var result = await _repository.InitializeCourseAsync(request.CourseId, request.MaxStudents);
+
+        if (!result)
+        {
+            return new InitializeCourseResponse
+            {
+                Success = false,
+                Message = $"Failed to initialize course with ID {request.CourseId}",
+            };
+        }
+
+        return new InitializeCourseResponse
+        {
+            Success = true,
+            Message = $"Succesfully initialized course with ID {request.CourseId}",
+        };
+    }
 }
