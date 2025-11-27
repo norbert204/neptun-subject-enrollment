@@ -75,9 +75,13 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
-          context: src/${{ env.SERVICE }}
+          # use repository root as build context so Docker can access sibling project files
+          # (e.g. ../GrpcCachingService/Protos) referenced by the service csproj
+          context: .
+          # point the Dockerfile for the selected service
+          file: src/${{ env.SERVICE }}/Dockerfile
           push: true
-          tags:  ${{ steps.pupi.outputs.tags }}
+          tags: ${{ steps.pupi.outputs.tags }}
 
       - name: Receipt
         run: |
