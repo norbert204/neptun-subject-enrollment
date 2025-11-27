@@ -2,10 +2,13 @@
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
-COPY ["GrpcAuthService.csproj", "./"]
-RUN dotnet restore "GrpcAuthService.csproj"
+# Copy the entire src tree into the image so sibling projects (and their Protos)
+# are available at the expected relative paths during dotnet publish.
+COPY src/ ./
 
-COPY . ./
+# Build from the service folder
+WORKDIR /src/GrpcAuthService
+RUN dotnet restore "GrpcAuthService.csproj"
 RUN dotnet publish "GrpcAuthService.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime

@@ -2,10 +2,12 @@
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
-COPY ["GrpcSubjectService.csproj", "./"]
-RUN dotnet restore "GrpcSubjectService.csproj"
+# Copy the entire src tree so sibling projects (and their Protos) are available
+COPY src/ ./
 
-COPY . ./
+# Build from the service folder
+WORKDIR /src/GrpcSubjectService
+RUN dotnet restore "GrpcSubjectService.csproj"
 RUN dotnet publish "GrpcSubjectService.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
