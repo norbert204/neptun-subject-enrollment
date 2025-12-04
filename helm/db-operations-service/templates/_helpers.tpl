@@ -49,14 +49,3 @@ Selector labels
 app.kubernetes.io/name: {{ include "db-operations-service.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
-
-{{/*
-Create the name of the service account to use
-*/}}
-{{- define "db-operations-service.serviceAccountName" -}}
-{{- if .Values.serviceAccount.create }}
-{{- default (include "db-operations-service.fullname" .) .Values.serviceAccount.name }}
-{{- else }}
-{{- default "default" .Values.serviceAccount.name }}
-{{- end }}
-{{- end }}

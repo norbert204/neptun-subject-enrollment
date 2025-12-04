@@ -26,16 +26,21 @@ podAnnotations: {}
 # For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
 podLabels: {}
 
-podSecurityContext: {}
-  # fsGroup: 2000
+podSecurityContext:
+  # Set fsGroup so volumes are readable by the container user
+  fsGroup: 2000
 
-securityContext: {}
-  # capabilities:
-  #   drop:
-  #   - ALL
-  # readOnlyRootFilesystem: true
-  # runAsNonRoot: true
-  # runAsUser: 1000
+securityContext:
+  # Recommended settings for the "restricted" PodSecurity level
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1000
+  seccompProfile:
+    type: RuntimeDefault
 
 # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
 service:
@@ -109,3 +114,10 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+# Redis subchart / connection settings
+redis:
+  enabled: true
+  # connection string the app will use (overrides discovery of subchart service name)
+  # default points to the redis master service created by the bitnami/redis chart
+  connectionString: "redis-master:6379"
