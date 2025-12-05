@@ -1,0 +1,57 @@
+﻿syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+option csharp_namespace = "UserService";
+
+package user;
+
+service User {
+  rpc CreateUser (CreateUserRequest) returns (UserResponse);
+  rpc GetUser (UserNeptunCodeRequest) returns (UserResponse);
+  rpc UpdateUser (UpdateUserRequest) returns (UserResponse);
+  rpc DeleteUser (UserNeptunCodeRequest) returns (DeleteResponse);
+  rpc ListUsers (ListUsersRequest) returns (UserListResponse);
+}
+
+message UserData {
+  string neptun_code = 1;
+  string name = 2;
+  string email = 3;
+}
+
+message CreateUserRequest {
+  string neptun_code = 1;
+  string name = 2;
+  string email = 3;
+  string password = 4; 
+}
+
+message UpdateUserRequest {
+  string neptun_code = 1;
+  string name = 2;
+  string email = 3;
+  string password = 4; 
+}
+
+message UserNeptunCodeRequest {
+  string neptun_code = 1;
+}
+
+message UserResponse {
+  bool success = 1;
+  string message = 2;
+  UserData user = 3;
+}
+
+message UserListResponse {
+  repeated UserData users = 1;
+}
+
+message ListUsersRequest {
+}
+
+message DeleteResponse {
+  bool success = 1;
+  string message = 2;
+}
