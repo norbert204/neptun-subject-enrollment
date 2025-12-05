@@ -8,14 +8,14 @@ set -euo pipefail
 
 NAMESPACE=${NAMESPACE:-neptun}
 RELEASE_PREFIX=${RELEASE_PREFIX:-}
-TIMEOUT=${TIMEOUT:-5m}
+TIMEOUT=${TIMEOUT:-2m}
 
 CHART_DIRS=(
-  caching-service
-  database-service
   auth-service
   subject-service
   db-operations-service
+  caching-service
+  database-service
 )
 
 # Ensure bitnami repo is present (used by some subcharts)
@@ -44,9 +44,7 @@ for chart in "${CHART_DIRS[@]}"; do
   # Update dependencies for the chart (downloads subcharts into charts/)
   (cd "$chart_path" && helm dependency update)
 
-  helm upgrade --install "$name" "$chart_path" \
-    --namespace "$NAMESPACE" --create-namespace \
-    --wait --timeout "$TIMEOUT" --dependency-update
+  helm install "$name" "$chart_path" --create-namespace -n "$NAMESPACE"
 
   echo "Deployed $name"
 done
