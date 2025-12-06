@@ -21,7 +21,7 @@ public class AuthController : ControllerBase
         _authServiceClient = authDataServiceClient;
     }
 
-    [HttpPost]
+    [HttpPost("login")]
     public async Task<ActionResult<LoginResponse>> LoginAsync(LoginRequest loginRequest, CancellationToken cancellationToken)
     {
         var request = new GrpcAuthService.LoginRequest
@@ -53,7 +53,7 @@ public class AuthController : ControllerBase
         }
     }
 
-    [HttpPost]
+    [HttpPost("refresh-token")]
     public async Task<ActionResult<RefreshTokenResponse>> RefreshTokenAsync(RefreshTokenRequest refreshTokenRequest, CancellationToken cancellationToken)
     {
         var request = new GrpcAuthService.RefreshTokenRequest
