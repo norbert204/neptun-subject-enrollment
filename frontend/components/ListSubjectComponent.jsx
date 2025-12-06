@@ -1,13 +1,20 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './ListSubjectComponent.css'
-
+import { getEligibleCoursesForStudent } from '../services/SubjectService';
 
 const ListSubjectComponent = () => {
-    const dummyData = [
-        { id: 1, space: 100, required: "Java", name: "Java-2" },
-        { id: 2, space: 100, required: "Java-2", name: "Java-3" }
-    ];
+    
+    const[subjects, setSubjects] = useState([])
+
+    useEffect(() =>{
+        getEligibleCoursesForStudent().then((response) => {
+            setSubjects(response.data)
+        }).catch(error => {
+            console.log(error);
+        })
+    }, [])
+
     return (
         <div className='container'>
             <h2 className='table-title'>
@@ -16,19 +23,21 @@ const ListSubjectComponent = () => {
             <table className='table table-striped table-bordered'>
                 <thead>
                     <tr>
-                        <th>Tantárgy azonosító</th>
-                        <th>Tantárgy neve</th>
-                        <th>Férőhelyek</th>
-                        <th>Előfeltétel</th>
+                        <th>Kurzus azonosító</th>
+                        <th>Kurzus típusa</th>
+                        <th>Kurzus kezdete</th>
+                        <th>Kurzus vége</th>
+                        <th>Terem</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {dummyData.map(subject => (
-                        <tr key={subject.id}>
-                            <td>{subject.id}</td>
-                            <td>{subject.name}</td>
-                            <td>{subject.space}</td>
-                            <td>{subject.required}</td>
+                    {subjects.map(subject => (
+                        <tr key={subject.CourseId}>
+                            <td>{course.CourseId}</td>
+                            <td>{course.CourseType}</td>
+                            <td>{course.StartTime}</td>
+                            <td>{course.EndTime}</td>
+                            <td>{course.Room}</td>
                         </tr>
                     ))}
                 </tbody>

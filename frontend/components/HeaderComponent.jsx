@@ -4,7 +4,11 @@ const HeaderComponent = () => {
   return (
     <div>
         <header>
-            <nav className='navbar navbar-dark bg-dark'></nav>
+            <nav className='navbar navbar-dark bg-dark'>
+                <a class>
+
+                </a>
+            </nav>
         </header>
     </div>
   )
