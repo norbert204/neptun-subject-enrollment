@@ -9,12 +9,19 @@
 
     <ItemGroup>
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.2" />
+        <PackageReference Include="Grpc.AspNetCore" Version="2.64.0"/>
     </ItemGroup>
 
     <ItemGroup>
       <Content Include="..\..\.dockerignore">
         <Link>.dockerignore</Link>
       </Content>
+    </ItemGroup>
+    
+    <ItemGroup>
+        <Protobuf Include="..\GrpcAuthService\Protos\AuthService.proto" GrpcServices="Client" />
+        <Protobuf Include="..\GrpcCachingService\Protos\authdata.proto" GrpcServices="Client" />
+        <Protobuf Include="..\GrpcDatabaseService\Protos\userService.proto" GrpcServices="Client" />
     </ItemGroup>
 
 </Project>
