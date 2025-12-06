@@ -1,5 +1,6 @@
 using Gateway.Options;
 using GrpcAuthService;
+using SubjectService;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,7 +10,27 @@ builder.Services.AddOpenApi();
 
 var serviceLocationOptions = builder.Configuration.GetSection("ServiceLocation").Get<ServiceLocationOptions>();
 
-builder.Services.AddGrpcClient<AuthService.AuthServiceClient>(x => x.Address = new Uri(serviceLocationOptions!.AuthServiceUri));
+builder.Services.AddGrpcClient<AuthService.AuthServiceClient>(x => x.Address = new Uri(serviceLocationOptions!.AuthServiceUri))
+    .ConfigurePrimaryHttpMessageHandler(() =>
+    {
+        var handler = new HttpClientHandler
+        {
+            ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+        };
+
+        return handler;
+    });
+
+builder.Services.AddGrpcClient<Subject.SubjectClient>(x => x.Address = new Uri(serviceLocationOptions!.SubjectServiceUri))
+    .ConfigurePrimaryHttpMessageHandler(() =>
+    {
+        var handler = new HttpClientHandler
+        {
+            ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+        };
+
+        return handler;
+    });
 
 var app = builder.Build();
 

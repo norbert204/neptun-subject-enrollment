@@ -20,8 +20,7 @@
     
     <ItemGroup>
         <Protobuf Include="..\GrpcAuthService\Protos\AuthService.proto" GrpcServices="Client" />
-        <Protobuf Include="..\GrpcCachingService\Protos\authdata.proto" GrpcServices="Client" />
-        <Protobuf Include="..\GrpcDatabaseService\Protos\userService.proto" GrpcServices="Client" />
+        <Protobuf Include="..\GrpcSubjectService\Protos\subject.proto" GrpcServices="Client" />
     </ItemGroup>
 
 </Project>
