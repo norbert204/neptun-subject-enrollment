@@ -1,5 +1,6 @@
 import React from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import './ListSubjectComponent.css'
 
 
 const ListSubjectComponent = () => {
@@ -9,7 +10,9 @@ const ListSubjectComponent = () => {
     ];
     return (
         <div className='container'>
-            <h2>Tantárgyak listája</h2>
+            <h2 className='table-title'>
+                Tantárgyak listája
+            </h2>
             <table className='table table-striped table-bordered'>
                 <thead>
                     <tr>
