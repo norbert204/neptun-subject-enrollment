@@ -1,23 +1,26 @@
-﻿FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
-USER $APP_UID
-WORKDIR /app
-EXPOSE 8080
-EXPOSE 8081
-
-FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
-ARG BUILD_CONFIGURATION=Release
+﻿FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
-COPY ["src/Gateway/Gateway.csproj", "src/Gateway/"]
-RUN dotnet restore "src/Gateway/Gateway.csproj"
-COPY . .
-WORKDIR "/src/src/Gateway"
-RUN dotnet build "./Gateway.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
-FROM build AS publish
-ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./Gateway.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+# Copy the entire src tree into the image so sibling projects (and their Protos)
+# are available at the expected relative paths during dotnet publish.
+COPY src/ ./
 
-FROM base AS final
+# Build from the service folder
+WORKDIR /src/GrpcAuthService
+RUN dotnet restore "Gateway.csproj"
+RUN dotnet publish "Gateway.csproj" -c Release -o /app/publish /p:UseAppHost=false
+
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
 WORKDIR /app
-COPY --from=publish /app/publish .
+
+RUN useradd -m -u 1000 app || true
+
+COPY --chown=app:app --from=build /app/publish .
+
+ENV ASPNETCORE_URLS="http://+:80"
+ENV DOTNET_RUNNING_IN_CONTAINER=true
+EXPOSE 80
+
+USER app
+
 ENTRYPOINT ["dotnet", "Gateway.dll"]
