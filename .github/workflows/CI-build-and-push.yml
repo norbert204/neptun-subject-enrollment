@@ -1,0 +1,93 @@
+name: CI - Build & Publish Docker images
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to checkout'
+        required: false
+        default: 'main'
+      service:
+        description: "Service folder name (e.g. GrpcAuthService)"
+        required: false
+        default: 'GrpcAuthService'
+        type: choice
+        options:
+          - GrpcAuthService
+          - GrpcCachingService
+          - GrpcDatabaseService
+          - GrpcDBOperationsService
+          - GrpcSubjectService
+      push-latest:
+        description: 'Whether to also push :latest tag (true/false)'
+        required: false
+        default: 'true'
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
+jobs:
+  build-and-push:
+    name: Build and push selected service(s)
+    runs-on: ubuntu-latest
+    env:
+      REPO_OWNER: ${{ github.repository_owner }}
+      SERVICE: ${{ github.event.inputs.service }}
+      BRANCH: ${{ github.event.inputs.branch }}
+      PUSH_LATEST: ${{ github.event.inputs.push-latest }}
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ env.BRANCH }}
+
+      - name: Generate image name and tag
+        id: pupi
+        run: |
+          IMAGE_NAME=$(echo "$SERVICE" | tr '[:upper:]' '[:lower:]')
+          IMAGE="ghcr.io/${REPO_OWNER}/$IMAGE_NAME"
+          TAG=$(git rev-parse --short HEAD)
+
+          if [ "$PUSH_LATEST" = "true" ] || [ "$PUSH_LATEST" = "True" ]; then
+            TAGS="$IMAGE:$TAG"$'\n'"$IMAGE:latest"
+          else
+            TAGS="$IMAGE:$TAG"
+          fi
+
+          echo "image=$IMAGE" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "tags<<EOF" >> "$GITHUB_OUTPUT"
+          printf "%s\n" "$TAGS" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ env.REPO_OWNER }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          # use repository root as build context so Docker can access sibling project files
+          # (e.g. ../GrpcCachingService/Protos) referenced by the service csproj
+          context: .
+          # point the Dockerfile for the selected service
+          file: src/${{ env.SERVICE }}/Dockerfile
+          push: true
+          tags: ${{ steps.pupi.outputs.tags }}
+
+      - name: Receipt
+        run: |
+          echo "=== Build & Publish Receipt ==="
+          printf "%s\n" "${{ steps.pupi.outputs.tags }}"
+          # export pushed_images as multiline output
+          echo "pushed_images<<EOF" >> $GITHUB_OUTPUT
+          printf "%s\n" "${{ steps.pupi.outputs.tags }}" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
