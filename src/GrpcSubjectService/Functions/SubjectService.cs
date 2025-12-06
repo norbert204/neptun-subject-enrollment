@@ -144,4 +144,31 @@ public class SubjectService : Subject.SubjectBase
             Courses = { courses }
         };
     }
+
+    public override async Task<ListEnrolledCoursesOfStudentResponse> ListEnrolledCoursesOfStudent(
+        ListEnrolledCoursesOfStudentRequest request,
+        ServerCallContext context)
+    {
+        var courseCodes = await _cacheService.GetEnrolledCoursesAsync(request.StudentId);
+        
+        var courses = new List<CourseData>();
+        foreach (var courseCode in courseCodes)
+        {
+            var course = await _databaseCourseService.GetCourseAsync(new CourseIdRequest { Id = courseCode });
+            
+            courses.Add(new CourseData
+            {
+                CourseId = course.Course.Id,
+                CourseRoom = course.Course.Room,
+                StartTime = course.Course.StartTime,
+                EndTime = course.Course.EndTime,
+                CourseType = course.Course.CourseType,
+            });
+        }
+
+        return new ListEnrolledCoursesOfStudentResponse()
+        {
+            Courses = { courses }
+        };
+    }
 }

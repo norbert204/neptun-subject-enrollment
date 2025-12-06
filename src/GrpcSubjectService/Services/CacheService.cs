@@ -91,4 +91,17 @@ public class CacheService : ICacheService
 
         return result.CourseCodes.ToList();
     }
+
+    public async Task<List<string>> GetEnrolledCoursesAsync(string studentId)
+    {
+        var request = new StudentRequest
+        {
+            StudentId = studentId,
+        };
+
+        // Elvileg ezt kell hívni
+        var result = await _courseRegistrationServiceClient.GetCoursesForStudentAsync(request);
+        
+        return result.CourseCodes.ToList();
+    }
 }
