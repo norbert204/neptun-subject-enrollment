@@ -9,6 +9,7 @@ package greet;
 service Subject {
   rpc EnrollToCourse (EnrollToCourseRequest) returns (EnrollToCourseResponse);
   rpc InitializeSubjectEnrollment (google.protobuf.Empty) returns (EnrollmentInitializationResponse);
+  rpc ListEligibleCourses (ListEligibleCoursesRequest) returns (ListEligibleCoursesResponse);
 }
 
 message EnrollToCourseRequest {
@@ -25,3 +26,19 @@ message EnrollmentInitializationResponse {
   bool success = 1;
   string message = 2;
 }
+
+message ListEligibleCoursesRequest {
+  string student_id = 1;
+}
+
+message ListEligibleCoursesResponse {
+  repeated CourseData courses = 1;
+}
+
+message CourseData {
+  string course_id = 1;
+  string course_room = 2;
+  string start_time = 3;
+  string end_time = 4;
+  string course_type = 5;
+};

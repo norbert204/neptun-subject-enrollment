@@ -5,6 +5,7 @@ using GrpcDatabaseService.Protos;
 using NeptunKiller.SubjectService.Exceptions;
 using NeptunKiller.SubjectService.Services;
 using SubjectService;
+using CourseData = SubjectService.CourseData;
 
 namespace NeptunKiller.SubjectService.Functions;
 
@@ -116,6 +117,31 @@ public class SubjectService : Subject.SubjectBase
         {
             Success = true,
             Message = "Successful enrollment initialization",
+        };
+    }
+
+    public override async Task<ListEligibleCoursesResponse> ListEligibleCourses(ListEligibleCoursesRequest request, ServerCallContext context)
+    {
+        var courseCodes = await _cacheService.GetEiligibleCoursesAsync(request.StudentId);
+
+        var courses = new List<CourseData>();
+        foreach (var courseCode in courseCodes)
+        {
+            var course = await _databaseCourseService.GetCourseAsync(new CourseIdRequest { Id = courseCode });
+            
+            courses.Add(new CourseData
+            {
+                CourseId = course.Course.Id,
+                CourseRoom = course.Course.Room,
+                StartTime = course.Course.StartTime,
+                EndTime = course.Course.EndTime,
+                CourseType = course.Course.CourseType,
+            });
+        }
+
+        return new ListEligibleCoursesResponse
+        {
+            Courses = { courses }
         };
     }
 }

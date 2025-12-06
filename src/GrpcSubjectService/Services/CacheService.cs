@@ -79,4 +79,16 @@ public class CacheService : ICacheService
         
         return result.StudentIds.Contains(studentId);
     }
+
+    public async Task<List<string>> GetEiligibleCoursesAsync(string studentId)
+    {
+        var request = new StudentRequest
+        {
+            StudentId = studentId,
+        };
+
+        var result = await _courseRegistrationServiceClient.GetEligibleCoursesForStudentAsync(request);
+
+        return result.CourseCodes.ToList();
+    }
 }
