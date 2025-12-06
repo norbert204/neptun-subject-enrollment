@@ -1,6 +1,6 @@
 namespace Gateway.DTOs.Admin.Course;
 
-public class CourseDto
+public class AdminCourseDto
 {
     public string Id { get; init; }
     

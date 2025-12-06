@@ -6,7 +6,6 @@ using GrpcDatabaseService.Protos;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using SubjectService;
-using CourseDto = Gateway.DTOs.Admin.Course.CourseDto;
 
 namespace Gateway.Controllers;
 
@@ -177,7 +176,7 @@ public class AdminController : ControllerBase
         var response = await _databaseCourseServiceClient.ListCoursesAsync(request, cancellationToken: cancellationToken);
 
         var result = response.Courses
-            .Select(x => new CourseDto
+            .Select(x => new AdminCourseDto
             {
                 Id = x.Id,
                 Room = x.Room,
