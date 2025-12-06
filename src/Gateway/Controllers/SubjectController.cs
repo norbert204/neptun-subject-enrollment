@@ -1,6 +1,8 @@
+using System.Net;
 using Gateway.DTOs.Subject;
 using Microsoft.AspNetCore.Mvc;
 using SubjectService;
+using EnrollToCourseRequest = Gateway.DTOs.Subject.EnrollToCourseRequest;
 
 namespace Gateway.Controllers;
 
@@ -39,5 +41,29 @@ public class SubjectController : ControllerBase
             .ToList();
         
         return Ok(new EligibleCoursesResponse{ EligibleCourses = result });
+    }
+
+    [HttpPost("enroll-to-course")]
+    public async Task<IActionResult> EnrollToCourseAsync(EnrollToCourseRequest request, CancellationToken cancellationToken)
+    {
+        var serviceRequest = new SubjectService.EnrollToCourseRequest
+        {
+            CourseId = request.CourseId,
+            StudentId = request.StudentId,
+        };
+
+        var response = await _subjectServiceClient.EnrollToCourseAsync(serviceRequest, cancellationToken: cancellationToken);
+
+        if (!response.Success)
+        {
+            return BadRequest(
+                new ProblemDetails
+                {
+                    Detail = response.Message,
+                    Status = (int)HttpStatusCode.BadRequest,
+                });
+        }
+
+        return Ok();
     }
 }
