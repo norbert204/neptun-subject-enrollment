@@ -43,6 +43,11 @@ spec:
             - name: http
               containerPort: {{ .Values.service.port }}
               protocol: TCP
+          env:
+            - name: Service__DatabaseServiceUri
+              value: {{ .Values.serviceConfig.databaseServiceUri | quote }}
+            - name: Service__CacheServiceUri
+              value: {{ .Values.serviceConfig.cacheServiceUri | quote }}
           {{- with .Values.livenessProbe }}
           livenessProbe:
             {{- toYaml . | nindent 12 }}

@@ -8,6 +8,10 @@ set -euo pipefail
 
 NAMESPACE=${NAMESPACE:-neptun}
 RELEASE_PREFIX=${RELEASE_PREFIX:-}
+# WAIT controls whether `helm upgrade --install` waits for resources to become ready.
+# Set to "true" to wait (default: false to avoid hanging on PVCs or long waits).
+WAIT=${WAIT:-false}
+# Timeout for `--wait` when WAIT is true
 TIMEOUT=${TIMEOUT:-2m}
 
 CHART_DIRS=(
@@ -44,7 +48,32 @@ for chart in "${CHART_DIRS[@]}"; do
   # Update dependencies for the chart (downloads subcharts into charts/)
   (cd "$chart_path" && helm dependency update)
 
-  helm install "$name" "$chart_path" --create-namespace -n "$NAMESPACE"
+  # Compute extra helm --set args for charts that need in-cluster service URIs
+  extra_args=()
+  # in-cluster short DNS (service name resolves within same namespace)
+  db_release=$(release_name "database-service")
+  cache_release=$(release_name "caching-service")
+  db_uri="http://${db_release}:80"
+  cache_uri="http://${cache_release}:80"
+
+  if [ "$chart" = "auth-service" ]; then
+    extra_args+=(--set-string "serviceConfig.databaseServiceUri=${db_uri}" --set-string "serviceConfig.cacheServiceUri=${cache_uri}")
+  fi
+
+  if [ "$chart" = "subject-service" ]; then
+    extra_args+=(--set-string "servicesConfig.databaseServiceUri=${db_uri}" --set-string "servicesConfig.cachingServiceUri=${cache_uri}")
+  fi
+
+  helm_cmd=(helm upgrade --install "$name" "$chart_path" --namespace "$NAMESPACE" --create-namespace --dependency-update)
+
+  if [ "$WAIT" = "true" ]; then
+    helm_cmd+=(--wait --timeout "$TIMEOUT")
+  else
+    # Avoid blocking: run without --wait so the script does not hang on unbound PVCs or long pod startups
+    echo "NOTE: not waiting for resources to become Ready (set WAIT=true to enable --wait)"
+  fi
+
+  "${helm_cmd[@]}" "${extra_args[@]}"
 
   echo "Deployed $name"
 done

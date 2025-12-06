@@ -122,3 +122,7 @@ cassandra:
   contactPoints: "cassandra"
   # keyspace used by the application
   keyspace: "sas_db"
+  image:
+    registry: ghcr.io
+    repository: bitnami/cassandra
+    tag: 5.0.3

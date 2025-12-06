@@ -84,9 +84,13 @@ livenessProbe:
     path: /
     port: http
 readinessProbe:
-  httpGet:
-    path: /
+  tcpSocket:
     port: http
+
+# Service URIs used by the application. Fill these with in-cluster addresses or set them at install time.
+servicesConfig:
+  databaseServiceUri: ""
+  cachingServiceUri: ""
 
 # This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
 autoscaling:

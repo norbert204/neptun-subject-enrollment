@@ -16,6 +16,12 @@ This directory contains per-service Helm charts for the project. Charts are loca
 
 - nginx ingress controller installed in the cluster (e.g. via [Helm chart](https://kubernetes.github.io/ingress-nginx/deploy/#quick-start))
 
+- install rancher local-path provisioner for local PVC provisioning (needed for Cassandra and Redis subcharts):
+
+```fish
+kubectl apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/master/deploy/local-path-storage.yaml
+```
+
 ## Quick deploy (example)
 
 1. Create a namespace:
@@ -36,6 +42,29 @@ helm upgrade --install subject-service ./helm/subject-service -n neptun --create
 ./helm/scripts/test-services.sh
 ./helm/scripts/uninstall-all.sh
 ```
+
+
+## PVC provisioning (local dev)
+
+If Cassandra or Redis subchart pods stay in `Pending` due to PVCs not being provisioned, you may need to adjust your local provisioner settings to allow hostPath volume creation.
+
+— Allow the local provisioner to create hostPath volumes (quickest for local clusters):
+
+  - Label the provisioner namespace so the provisioner can create hostPath-backed pods (example for the Rancher `local-path` provisioner):
+
+  ```fish
+  kubectl label namespace local-path-storage pod-security.kubernetes.io/enforce=privileged --overwrite
+  kubectl label namespace local-path-storage pod-security.kubernetes.io/audit=privileged --overwrite
+  kubectl label namespace local-path-storage pod-security.kubernetes.io/warn=privileged --overwrite
+  ```
+
+  - Recreate or restart the provisioner pods (if needed) and re-deploy the charts:
+
+  ```fish
+  kubectl rollout restart deployment -n local-path-storage
+  ./helm/scripts/uninstall-all.sh
+  ./helm/scripts/install-all.sh
+  ```
 
 
 ## Notes for gRPC services behind nginx ingress
