@@ -68,24 +68,6 @@ public class SubjectController : ControllerBase
         return Ok();
     }
 
-    [HttpPost("start-enrollment-period")]
-    public async Task<IActionResult> StartEnrollmentPeriodAsync(CancellationToken cancellationToken)
-    {
-        var response = await _subjectServiceClient.InitializeSubjectEnrollmentAsync(new Empty(), cancellationToken: cancellationToken);
-
-        if (!response.Success)
-        {
-            return BadRequest(
-                new ProblemDetails
-                {
-                    Detail = response.Message,
-                    Status = (int)HttpStatusCode.BadRequest,
-                });
-        }
-
-        return Ok();
-    }
-
     [HttpGet("student/{studentId}/enrolled")]
     public async Task<ActionResult<EnrolledCoursesResponse>> GetEnrolledCoursesForStudentAsync(string studentId, CancellationToken cancellationToken)
     {
