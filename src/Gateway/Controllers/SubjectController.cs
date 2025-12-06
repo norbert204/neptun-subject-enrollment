@@ -1,5 +1,6 @@
 using System.Net;
 using Gateway.DTOs.Subject;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.AspNetCore.Mvc;
 using SubjectService;
 using EnrollToCourseRequest = Gateway.DTOs.Subject.EnrollToCourseRequest;
@@ -53,6 +54,24 @@ public class SubjectController : ControllerBase
         };
 
         var response = await _subjectServiceClient.EnrollToCourseAsync(serviceRequest, cancellationToken: cancellationToken);
+
+        if (!response.Success)
+        {
+            return BadRequest(
+                new ProblemDetails
+                {
+                    Detail = response.Message,
+                    Status = (int)HttpStatusCode.BadRequest,
+                });
+        }
+
+        return Ok();
+    }
+
+    [HttpPost("start-enrollment-period")]
+    public async Task<IActionResult> StartEnrollmentPeriodAsync(CancellationToken cancellationToken)
+    {
+        var response = await _subjectServiceClient.InitializeSubjectEnrollmentAsync(new Empty(), cancellationToken: cancellationToken);
 
         if (!response.Success)
         {
