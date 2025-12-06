@@ -10,6 +10,7 @@ service Subject {
   rpc EnrollToCourse (EnrollToCourseRequest) returns (EnrollToCourseResponse);
   rpc InitializeSubjectEnrollment (google.protobuf.Empty) returns (EnrollmentInitializationResponse);
   rpc ListEligibleCourses (ListEligibleCoursesRequest) returns (ListEligibleCoursesResponse);
+  rpc ListEnrolledCoursesOfStudent (ListEnrolledCoursesOfStudentRequest) returns (ListEnrolledCoursesOfStudentResponse);
 }
 
 message EnrollToCourseRequest {
@@ -42,3 +43,11 @@ message CourseData {
   string end_time = 4;
   string course_type = 5;
 };
+
+message ListEnrolledCoursesOfStudentRequest {
+  string student_id = 1;
+}
+
+message ListEnrolledCoursesOfStudentResponse {
+  repeated CourseData courses = 1;
+}

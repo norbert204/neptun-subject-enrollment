@@ -20,7 +20,7 @@ public class SubjectController : ControllerBase
         _subjectServiceClient = subjectServiceClient;
     }
 
-    [HttpGet("eligible-courses")]
+    [HttpGet("student/{studentId}/eligible-courses")]
     public async Task<ActionResult<EligibleCoursesResponse>> GetEligibleCoursesForStudentAsync(string studentId, CancellationToken cancellationToken)
     {
         var request = new ListEligibleCoursesRequest
@@ -84,5 +84,29 @@ public class SubjectController : ControllerBase
         }
 
         return Ok();
+    }
+
+    [HttpGet("student/{studentId}/enrolled")]
+    public async Task<ActionResult<EnrolledCoursesResponse>> GetEnrolledCoursesForStudentAsync(string studentId, CancellationToken cancellationToken)
+    {
+        var request = new ListEnrolledCoursesOfStudentRequest
+        {
+            StudentId = studentId,
+        };
+
+        var response = await _subjectServiceClient.ListEnrolledCoursesOfStudentAsync(request, cancellationToken: cancellationToken);
+
+        var result = response.Courses
+            .Select(x => new CourseDto
+            {
+                CourseId = x.CourseId,
+                CourseType = x.CourseType,
+                EndTime = x.EndTime,
+                Room = x.CourseRoom,
+                StartTime = x.StartTime,
+            })
+            .ToList();
+
+        return Ok(new EnrolledCoursesResponse { Courses = result });
     }
 }
