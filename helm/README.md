@@ -16,7 +16,7 @@ This directory contains per-service Helm charts for the project. Charts are loca
 
 - nginx ingress controller installed in the cluster (e.g. via [Helm chart](https://kubernetes.github.io/ingress-nginx/deploy/#quick-start))
 
-- install rancher local-path provisioner for local PVC provisioning (needed for Cassandra and Redis subcharts):
+- install rancher local-path provisioner for local PVC provisioning (needed for Cassandra and Redis subcharts) see below for details:
 
 ```fish
 kubectl apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/master/deploy/local-path-storage.yaml
