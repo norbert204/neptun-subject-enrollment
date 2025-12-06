@@ -1,11 +1,11 @@
-import ListSubjectComponent from '../components/ListSubjectComponent'
+import ListStudentComponent from '../components/ListStudentComponent'
 import './App.css'
 
 function App() {
 
   return (
     <>
-      <ListSubjectComponent />
+      <ListStudentComponent />
     </>
   )
 }
