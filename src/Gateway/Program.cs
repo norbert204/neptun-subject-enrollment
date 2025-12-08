@@ -1,3 +1,4 @@
+using Gateway.Helpers;
 using Gateway.Options;
 using GrpcAuthService;
 using GrpcDatabaseService.Protos;
@@ -69,6 +70,8 @@ builder.Services.AddGrpcClient<UserService.UserServiceClient>(x => x.Address = n
 
 var app = builder.Build();
 
+app.MapControllers();
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -76,6 +79,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.Run();

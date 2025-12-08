@@ -30,27 +30,14 @@ public class AuthController : ControllerBase
             Password = loginRequest.Password,
         };
 
-        try
-        {
-            var response = await _authServiceClient.LoginAsync(request, cancellationToken: cancellationToken);
+        var response = await _authServiceClient.LoginAsync(request, cancellationToken: cancellationToken);
 
-            return Ok(
-                new LoginResponse
-                {
-                    AccessToken = response.AccessToken,
-                    RefreshToken = response.RefreshToken
-                });
-        }
-        catch(Exception ex)
-        {
-            _logger.LogError(ex, "Login endpoint returned error");
-            
-            return StatusCode(500, new ProblemDetails
+        return Ok(
+            new LoginResponse
             {
-                Detail = ex.Message,
-                Status = (int)HttpStatusCode.InternalServerError,
+                AccessToken = response.AccessToken,
+                RefreshToken = response.RefreshToken
             });
-        }
     }
 
     [HttpPost("refresh-token")]
