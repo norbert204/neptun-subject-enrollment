@@ -1,9 +1,8 @@
 using System.Net;
 using Gateway.DTOs.Admin.Course;
-using Gateway.DTOs.Subject;
+using Gateway.DTOs.Admin.Subject;
 using Google.Protobuf.WellKnownTypes;
 using GrpcDatabaseService.Protos;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using SubjectService;
 
@@ -104,13 +103,16 @@ public class AdminController : ControllerBase
 
         var result = new GetCourseByIdResponse
         {
-            Id = response.Course.Id,
-            Room = response.Course.Room,
-            StartTime = response.Course.StartTime,
-            EndTime = response.Course.EndTime,
-            Capacity = response.Course.Capacity,
-            CourseType = response.Course.CourseType,
-            EnrolledStudents = response.Course.EnrolledStudents.ToList(),
+            Course = new AdminCourseDto
+            {
+                Id = response.Course.Id,
+                Room = response.Course.Room,
+                StartTime = response.Course.StartTime,
+                EndTime = response.Course.EndTime,
+                Capacity = response.Course.Capacity,
+                CourseType = response.Course.CourseType,
+                EnrolledStudents = response.Course.EnrolledStudents.ToList(),
+            }
         };
 
         return Ok(result);
@@ -188,5 +190,137 @@ public class AdminController : ControllerBase
             })
             .ToList();
         return Ok(new ListCoursesResponse{  Courses = result });
+    }
+
+    [HttpPost("subject")]
+    public async Task<IActionResult> AddSubjectAsync(CreateSubjectRequest request, CancellationToken cancellationToken)
+    {
+        var serviceRequest = new SubjectRequest
+        {
+            Id = request.Id,
+            Owner = request.Owner,
+            Name = request.Name,
+            Courses = { request.Courses },
+            Prerequisites = { request.Prerequisites },
+        };
+
+        var response = await _databaseSubjectServiceClient.CreateSubjectAsync(serviceRequest, cancellationToken: cancellationToken);
+        
+        if (!response.Success)
+        {
+            return BadRequest(
+                new ProblemDetails
+                {
+                    Detail = response.Message,
+                    Status = (int)HttpStatusCode.BadRequest,
+                });
+        }
+
+        return Ok();
+    }
+
+    [HttpGet("subject/{subjectId}")]
+    public async Task<ActionResult<GetSubjectResponse>> GetSubjectAsync(string subjectId, CancellationToken cancellationToken)
+    {
+        var request = new SubjectIdRequest
+        {
+            Id = subjectId,
+        };
+
+        var response = await _databaseSubjectServiceClient.GetSubjectAsync(request, cancellationToken: cancellationToken);
+        
+        if (!response.Success)
+        {
+            return BadRequest(
+                new ProblemDetails
+                {
+                    Detail = response.Message,
+                    Status = (int)HttpStatusCode.BadRequest,
+                });
+        }
+
+        var result = new GetSubjectResponse
+        {
+            Subject = new AdminSubjectDto
+            {
+                Id = response.Subject.Id,
+                Name = response.Subject.Name,
+                Owner = response.Subject.Owner,
+                Courses = response.Subject.Courses.ToList(),
+                Prerequisites = response.Subject.Prerequisites.ToList(),
+            },
+        };
+        
+        return Ok(result);
+    }
+
+    [HttpPut("subject")]
+    public async Task<IActionResult> UpdateSubjectAsync(UpdateSubjectRequest request, CancellationToken cancellationToken)
+    {
+        var serviceRequest = new SubjectRequest
+        {
+            Id = request.Id,
+            Owner = request.Owner,
+            Name = request.Name,
+            Courses = { request.Courses },
+            Prerequisites = { request.Prerequisites },
+        };
+
+        var response = await _databaseSubjectServiceClient.UpdateSubjectAsync(serviceRequest, cancellationToken: cancellationToken);
+
+        if (!response.Success)
+        {
+            return BadRequest(
+                new ProblemDetails
+                {
+                    Detail = response.Message,
+                    Status = (int)HttpStatusCode.BadRequest,
+                });
+        }
+        
+        return Ok();
+    }
+
+    [HttpDelete("subject/{subjectId}")]
+    public async Task<IActionResult> DeleteSubjectAsync(string subjectId, CancellationToken cancellationToken)
+    {
+        var request = new SubjectIdRequest
+        {
+            Id = subjectId,
+        };
+
+        var response = await _databaseSubjectServiceClient.DeleteSubjectAsync(request, cancellationToken: cancellationToken);
+        
+        if (!response.Success)
+        {
+            return BadRequest(
+                new ProblemDetails
+                {
+                    Detail = response.Message,
+                    Status = (int)HttpStatusCode.BadRequest,
+                });
+        }
+        
+        return Ok();
+    }
+
+    [HttpGet("subject")]
+    public async Task<ActionResult<ListSubjectsResponse>> ListSubjectsAsync(CancellationToken cancellationToken)
+    {
+        var request = new GetAllSubjectsRequest();
+
+        var response = await _databaseSubjectServiceClient.ListSubjectsAsync(request, cancellationToken: cancellationToken);
+
+        var result = response.Subjects
+            .Select(x => new AdminSubjectDto
+            {
+                Id = x.Id,
+                Owner = x.Owner,
+                Name = x.Name,
+                Courses = x.Courses.ToList(),
+                Prerequisites = x.Prerequisites.ToList(),
+            });
+
+        return Ok(result);
     }
 }
