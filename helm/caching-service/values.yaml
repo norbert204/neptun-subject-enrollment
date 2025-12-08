@@ -80,12 +80,10 @@ resources: {}
 
 # This is to setup the liveness and readiness probes more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
 livenessProbe:
-  httpGet:
-    path: /
+  tcpSocket:
     port: http
 readinessProbe:
-  httpGet:
-    path: /
+  tcpSocket:
     port: http
 
 # This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
@@ -118,6 +116,15 @@ affinity: {}
 # Redis subchart / connection settings
 redis:
   enabled: true
+  architecture: standalone
   # connection string the app will use (overrides discovery of subchart service name)
   # default points to the redis master service created by the bitnami/redis chart
   connectionString: "redis-master:6379"
+  master:
+    replicaCount: 1
+    persistence:
+      enabled: true
+  replica:
+    replicaCount: 0
+    persistence:
+      enabled: true
