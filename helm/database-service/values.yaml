@@ -115,14 +115,22 @@ tolerations: []
 
 affinity: {}
 
-# Cassandra subchart / connection settings
+# ScyllaDB settings (Cassandra-compatible)
 cassandra:
   enabled: true
   # contact points the app will use to connect (comma-separated)
-  contactPoints: "cassandra"
+  contactPoints: "scylla"
   # keyspace used by the application
   keyspace: "sas_db"
+
+scylla:
+  replicaCount: 1
   image:
-    registry: ghcr.io
-    repository: bitnami/cassandra
-    tag: 5.0.3
+    repository: docker.io/scylladb/scylla
+    tag: "5.4"
+    pullPolicy: IfNotPresent
+  resources: {}
+  storage:
+    size: 10Gi
+    # set a storageClassName if needed (e.g., "local-path" or "longhorn")
+    storageClassName: ""
