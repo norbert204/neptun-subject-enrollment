@@ -1,6 +1,7 @@
 using System.Net;
 using Gateway.DTOs.Admin.Course;
 using Gateway.DTOs.Admin.Subject;
+using Gateway.DTOs.Admin.User;
 using Google.Protobuf.WellKnownTypes;
 using GrpcDatabaseService.Protos;
 using Microsoft.AspNetCore.Mvc;
@@ -320,6 +321,136 @@ public class AdminController : ControllerBase
                 Courses = x.Courses.ToList(),
                 Prerequisites = x.Prerequisites.ToList(),
             });
+
+        return Ok(result);
+    }
+
+    [HttpPost("user")]
+    public async Task<IActionResult> AddUserAsync(CreateUserRequest request, CancellationToken cancellationToken)
+    {
+        var serviceRequest = new UserRequest
+        {
+            NeptunCode = request.NeptunCode,
+            Email = request.Email,
+            Name = request.Name,
+            Password = request.Password,
+        };
+
+        var response = await _databaseUserServiceClient.CreateUserAsync(serviceRequest, cancellationToken: cancellationToken);
+        
+        if (!response.Success)
+        {
+            return BadRequest(
+                new ProblemDetails
+                {
+                    Detail = response.Message,
+                    Status = (int)HttpStatusCode.BadRequest,
+                });
+        }
+        
+        return Ok();
+    }
+
+    [HttpGet("user/{neptunCode}")]
+    public async Task<ActionResult<GetUserResponse>> GetUserAsync(string neptunCode, CancellationToken cancellationToken)
+    {
+        var request = new UserIdRequest
+        {
+            NeptunCode = neptunCode,
+        };
+
+        var response = await _databaseUserServiceClient.GetUserAsync(request, cancellationToken: cancellationToken);
+        
+        if (!response.Success)
+        {
+            return BadRequest(
+                new ProblemDetails
+                {
+                    Detail = response.Message,
+                    Status = (int)HttpStatusCode.BadRequest,
+                });
+        }
+
+        var result = new GetUserResponse
+        {
+            User = new AdminUserDto
+            {
+                NeptunCode = response.User.NeptunCode,
+                Name = response.User.Name,
+                Email = response.User.Email,
+            },
+        };
+
+        return Ok(result);
+    }
+
+    [HttpPut("user")]
+    public async Task<IActionResult> UpdateUserAsync(UpdateUserRequest request, CancellationToken cancellationToken)
+    {
+        var serviceRequest = new UserRequest
+        {
+            NeptunCode = request.NeptunCode,
+            Name = request.Name,
+            Email = request.Email,
+            Password = request.Password,
+        };
+
+        var response = await _databaseUserServiceClient.UpdateUserAsync(serviceRequest, cancellationToken: cancellationToken);
+        
+        if (!response.Success)
+        {
+            return BadRequest(
+                new ProblemDetails
+                {
+                    Detail = response.Message,
+                    Status = (int)HttpStatusCode.BadRequest,
+                });
+        }
+        
+        return Ok();
+    }
+
+    [HttpDelete("user/{neptunCode}")]
+    public async Task<IActionResult> DeleteUserAsync(string neptunCode, CancellationToken cancellationToken)
+    {
+        var request = new UserIdRequest
+        {
+            NeptunCode = neptunCode,
+        };
+
+        var response = await _databaseUserServiceClient.DeleteUserAsync(request, cancellationToken: cancellationToken);
+        
+        if (!response.Success)
+        {
+            return BadRequest(
+                new ProblemDetails
+                {
+                    Detail = response.Message,
+                    Status = (int)HttpStatusCode.BadRequest,
+                });
+        }
+        
+        return Ok();
+    }
+
+    [HttpGet("user")]
+    public async Task<ActionResult<ListUsersResponse>> ListUsersAsync(CancellationToken cancellationToken)
+    {
+        var request = new GetAllUsersRequest();
+
+        var response = await _databaseUserServiceClient.ListUsersAsync(request, cancellationToken: cancellationToken);
+
+        var result = new ListUsersResponse
+        {
+            Users = response.Users
+                .Select(x => new AdminUserDto
+                {
+                    NeptunCode = x.NeptunCode,
+                    Name = x.Name,
+                    Email = x.Email,
+                })
+                .ToList(),
+        };
 
         return Ok(result);
     }
