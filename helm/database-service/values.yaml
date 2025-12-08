@@ -132,3 +132,8 @@ scylla:
     size: 10Gi
     # set a storageClassName if needed (e.g., "local-path" or "longhorn")
     storageClassName: ""
+  schemaInit:
+    enabled: true
+    host: "scylla"
+    replicationFactor: 1
+    backoffLimit: 10
