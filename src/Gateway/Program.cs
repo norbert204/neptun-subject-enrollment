@@ -2,6 +2,7 @@ using Gateway.Helpers;
 using Gateway.Options;
 using GrpcAuthService;
 using GrpcDatabaseService.Protos;
+using Serilog;
 using SubjectService;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,6 +11,10 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddControllers();
+
+builder.Services.AddSerilog(x => x
+    .MinimumLevel.Information()
+    .WriteTo.Console());
 
 var serviceLocationOptions = builder.Configuration.GetSection("ServiceLocation").Get<ServiceLocationOptions>();
 
