@@ -84,6 +84,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+// Disabled CORS for less suffering
+app.UseCors(x => x.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
+
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.Run();
