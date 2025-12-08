@@ -118,13 +118,16 @@ redis:
   enabled: true
   architecture: standalone
   # connection string the app will use (overrides discovery of subchart service name)
-  # default points to the redis master service created by the bitnami/redis chart
-  connectionString: "redis-master:6379"
+  # The Bitnami chart creates a service named <release-name>-redis-master
+  connectionString: "caching-service-redis-master:6379"
+  # Disable auth for local dev (set auth.enabled=true and provide password for prod)
+  auth:
+    enabled: false
   master:
     replicaCount: 1
     persistence:
-      enabled: true
+      enabled: false
   replica:
     replicaCount: 0
     persistence:
-      enabled: true
+      enabled: false
