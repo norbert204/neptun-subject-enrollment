@@ -19,6 +19,12 @@ const HeaderComponent = ({ activeComponent, setActiveComponent }) => {
                             onClick={() => setActiveComponent('subjects')}
                         >
                             Tantárgyak
+                        </button >
+                        <button 
+                            className={`btn ${activeComponent === 'enrolledSubjects' ? 'btn-primary' : 'btn-secondary'}`}
+                            onClick={() => setActiveComponent('enrolledSubjects')}
+                        >
+                            Felvett tantárgyak
                         </button>
                     </div>
                 </div>

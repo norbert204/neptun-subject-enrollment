@@ -5,12 +5,12 @@ import { getEligibleCoursesForStudent, EnrollInCourse } from '../services/Subjec
 
 const ListSubjectComponent = () => {
     
-    const studentId =1;
-    const[subjects, setSubjects] = useState([])
+    const studentId = "1";
+    const[courses, setCourses] = useState([])
 
     useEffect(() =>{
-        getEligibleCoursesForStudent().then((response) => {
-            setSubjects(response.data)
+        getEligibleCoursesForStudent(studentId).then((response) => {
+            setCourses(response.data.EligibleCourses)
         }).catch(error => {
             console.log(error);
         })
@@ -38,16 +38,16 @@ const ListSubjectComponent = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    {subjects.map(subject => (
-                        <tr key={subject.CourseId}>
-                            <td>{subject.CourseId}</td>
-                            <td>{subject.CourseType}</td>
-                            <td>{subject.StartTime}</td>
-                            <td>{subject.EndTime}</td>
-                            <td>{subject.Room}</td>
+                    {courses.map(course => (
+                        <tr key={course.CourseId}>
+                            <td>{course.CourseId}</td>
+                            <td>{course.CourseType}</td>
+                            <td>{course.StartTime}</td>
+                            <td>{course.EndTime}</td>
+                            <td>{course.Room}</td>
                             <td>
                                <button className='btn btn-primary'
-                                 onClick={() => handleEnroll(studentId, subject.CourseId)}>
+                                 onClick={() => handleEnroll(studentId, course.CourseId)}>
                                     Enroll
                                 </button>
                             </td>
