@@ -1,8 +1,8 @@
 FROM node:25-alpine AS build
 WORKDIR /app
-COPY package*.json ./
+COPY src/Frontend/package*.json ./
 RUN npm install
-COPY . .
+COPY src/Frontend/ .
 RUN npm run build
 
 FROM nginx:stable-alpine AS production
