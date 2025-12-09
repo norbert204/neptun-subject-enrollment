@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { getAllStudents, deleteStudent } from '../services/StudentService';
+import './UniversalComponent.css'
 
 const ListStudentComponent = () => {
     
