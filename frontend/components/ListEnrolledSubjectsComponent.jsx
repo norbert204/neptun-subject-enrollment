@@ -1,31 +1,26 @@
 import React, {useEffect, useState} from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './ListSubjectComponent.css'
-import { getEligibleCoursesForStudent, EnrollInCourse } from '../services/SubjectService';
+import { getEnrolledCourses } from '../services/SubjectService';
+import './ListEnrolledSubjectsComponent.css'
 
-const ListSubjectComponent = () => {
+const ListEnrolledSubjectsComponent = () => {
     
     const studentId =1;
     const[subjects, setSubjects] = useState([])
 
     useEffect(() =>{
-        getEligibleCoursesForStudent().then((response) => {
+        getEnrolledCourses(studentId).then((response) => {
             setSubjects(response.data)
         }).catch(error => {
             console.log(error);
         })
     }, [])
 
-    function handleEnroll(studentId, courseId) {
-        EnrollInCourse(studentId, courseId).then((response) => {
-            alert("Sikeres feliratkozás a tárgyra!");
-        })
-    }
-
     return (
         <div className='container'>
             <h2 className='table-title'>
-                Tantárgyak listája
+                Felvett tantárgyak listája
             </h2>
             <table className='table table-striped table-bordered'>
                 <thead>
@@ -45,12 +40,6 @@ const ListSubjectComponent = () => {
                             <td>{course.StartTime}</td>
                             <td>{course.EndTime}</td>
                             <td>{course.Room}</td>
-                            <td>
-                               <button className='btn btn-primary'
-                                 onClick={() => handleEnroll(studentId, subject.CourseId)}>
-                                    Enroll
-                                </button>
-                            </td>
                         </tr>
                     ))}
                 </tbody>
@@ -59,4 +48,4 @@ const ListSubjectComponent = () => {
     );
 };
 
-export default ListSubjectComponent;
+export default ListEnrolledSubjectsComponent;
