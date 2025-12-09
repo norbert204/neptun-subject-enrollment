@@ -2,8 +2,8 @@ import { useState } from 'react'
 import HeaderComponent from '../components/HeaderComponent'
 import ListStudentComponent from '../components/ListStudentComponent'
 import ListSubjectComponent from '../components/ListSubjectComponent'
-import ListEnrolledSubjectComponent from '../components/ListEnrolledSubjectComponent'
-import LoginComponent from '../components/LoginComponent'
+import ListEnrolledSubjectsComponent from '../components/ListEnrolledSubjectsComponent'
+import LogfinComponent from '../components/LogfinComponent'
 import './App.css'
 
 function App() {
@@ -18,8 +18,8 @@ function App() {
 
       {activeComponent === 'students' && <ListStudentComponent />}
       {activeComponent === 'subjects' && <ListSubjectComponent />}
-      {activeComponent === 'enrolledSubjects' && <ListEnrolledSubjectComponent />}
-      {activeComponent === 'login' && <LoginComponent />}
+      {activeComponent === 'enrolledSubjects' && <ListEnrolledSubjectsComponent />}
+      {activeComponent === 'login' && <LogfinComponent />}
     </>
   )
 }
