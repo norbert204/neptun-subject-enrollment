@@ -12,14 +12,9 @@ const ListStudentComponent = () => {
 
     const loadStudents = () => {
         getAllStudents().then((response) => {
-            // A Controllered egy 'ListUsersResponse' objektumot küld, 
-            // amiben van egy 'users' lista (kisbetűvel indul a JSON miatt).
-            // Ha a válasz közvetlenül a lista, akkor response.data
-            // Ha objektumban van, akkor response.data.users
             if (response.data.users) {
                 setStudents(response.data.users);
             } else {
-                // Biztonsági tartalék, ha közvetlenül listát küldene
                 setStudents(response.data);
             }
         }).catch(error => {
@@ -31,7 +26,7 @@ const ListStudentComponent = () => {
         if(window.confirm(`Biztosan törölni szeretnéd a(z) ${neptun} kódú hallgatót?`)) {
             deleteStudent(neptun).then(() => {
                 alert("Sikeres törlés!");
-                loadStudents(); // Lista frissítése
+                loadStudents();
             }).catch(error => {
                 console.error(error);
                 alert("Hiba történt a törlés során!");
@@ -55,11 +50,10 @@ const ListStudentComponent = () => {
                 <tbody>
                     {students.map((student, index) => (
                         <tr key={student.neptunCode || index}>
-                            {/* Figyelj: a C# objektumok (NeptunCode) JSON-ben kisbetűsek lesznek (neptunCode)! */}
                             <td>{student.name}</td>
                             <td>{student.neptunCode}</td>
                             <td>{student.email}</td>
-                            <td>*****</td> {/* A backend nem küldi a jelszót, ez helyes! */}
+                            <td>*****</td>
                             <td>
                                 <button className='btn btn-danger' onClick={() => handleDelete(student.neptunCode)}>
                                     Törlés
