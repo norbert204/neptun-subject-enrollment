@@ -28,6 +28,9 @@ const ListStudentComponent = () => {
                             <td>{student.neptun}</td>
                             <td>{student.email}</td>
                             <td>{student.password}</td>
+                            <td>
+                               <button className='btn btn-primary'>Enroll</button>
+                            </td>
                         </tr>
                     ))}
                 </tbody>

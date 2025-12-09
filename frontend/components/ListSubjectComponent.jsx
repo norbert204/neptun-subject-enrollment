@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './ListSubjectComponent.css'
-import { getEligibleCoursesForStudent } from '../services/SubjectService';
+import { getEligibleCoursesForStudent, EnrollInCourse } from '../services/SubjectService';
 
 const ListSubjectComponent = () => {
     
@@ -14,6 +14,12 @@ const ListSubjectComponent = () => {
             console.log(error);
         })
     }, [])
+
+    function handleEnroll(studentId, courseId) {
+        EnrollInCourse(studentId, courseId).then((response) => {
+            alert("Sikeres feliratkozás a tárgyra!");
+        })
+    }
 
     return (
         <div className='container'>
@@ -38,6 +44,12 @@ const ListSubjectComponent = () => {
                             <td>{course.StartTime}</td>
                             <td>{course.EndTime}</td>
                             <td>{course.Room}</td>
+                            <td>
+                               <button className='btn btn-primary'
+                                 onClick={() => handleEnroll(1, subject.CourseId)}>
+                                    Enroll
+                                </button>
+                            </td>
                         </tr>
                     ))}
                 </tbody>
