@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: scylla
+  labels:
+    app.kubernetes.io/name: scylla
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  serviceName: scylla
+  replicas: {{ .Values.scylla.replicaCount | default 1 }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: scylla
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: scylla
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      # Scylla entrypoint expects root to run dev-mode setup; do not force runAsNonRoot
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: scylla
+          image: "{{ .Values.scylla.image.repository }}:{{ .Values.scylla.image.tag }}"
+          imagePullPolicy: {{ .Values.scylla.image.pullPolicy }}
+          ports:
+            - containerPort: 7000
+              name: intra
+            - containerPort: 7001
+              name: ssl
+            - containerPort: 9042
+              name: cql
+            - containerPort: 9160
+              name: thrift
+            - containerPort: 7199
+              name: jmx
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: SEEDS
+              value: "scylla-0.scylla.$(NAMESPACE).svc.cluster.local"
+          command: ["/bin/sh","-c"]
+          args:
+            - |
+              exec /docker-entrypoint.py \
+                --smp 1 \
+                --memory 750M \
+                --overprovisioned 1 \
+                --api-address 0.0.0.0 \
+                --listen-address ${POD_IP} \
+                --rpc-address 0.0.0.0 \
+                --broadcast-address ${POD_IP} \
+                --broadcast-rpc-address ${POD_IP} \
+                --seeds ${SEEDS}
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/scylla
+          resources:
+            {{- toYaml .Values.scylla.resources | nindent 12 }}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: {{ .Values.scylla.storage.size | default "10Gi" }}
+        {{- if .Values.scylla.storage.storageClassName }}
+        storageClassName: {{ .Values.scylla.storage.storageClassName | quote }}
+        {{- end }}

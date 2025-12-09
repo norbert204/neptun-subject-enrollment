@@ -6,7 +6,7 @@ WORKDIR /src
 COPY src/ ./
 
 # Build from the service folder
-WORKDIR /src/GrpcAuthService
+WORKDIR /src/Gateway
 RUN dotnet restore "Gateway.csproj"
 RUN dotnet publish "Gateway.csproj" -c Release -o /app/publish /p:UseAppHost=false
 

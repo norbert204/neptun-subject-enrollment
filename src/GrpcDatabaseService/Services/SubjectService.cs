@@ -97,8 +97,8 @@ namespace GrpcDatabaseService.Services
                         Id = subject.Id,
                         Owner = subject.Owner,
                         Name = subject.Name,
-                        Prerequisites = { subject.Prerequisites },
-                        Courses = { subject.Courses }
+                        Prerequisites = { subject.Prerequisites ?? [] },
+                        Courses = { subject.Courses ?? [] }
                     }
                 };
             }

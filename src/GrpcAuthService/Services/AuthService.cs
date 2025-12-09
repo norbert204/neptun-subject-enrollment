@@ -82,30 +82,39 @@ public class AuthService : GrpcAuthService.AuthService.AuthServiceBase
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(_jwtOptions.Secret)),
             ValidateIssuer = false,
             ValidateAudience = false,
-            RequireExpirationTime = true,
-            ValidateLifetime = true,
+            RequireExpirationTime = false,
+            ValidateLifetime = false,
         };
 
-        var result = await tokenHandler.ValidateTokenAsync(request.AccessToken, tokenValidationParameters);
-
-        if (!result.IsValid)
+        // Use synchronous ValidateToken to obtain ClaimsPrincipal and SecurityToken
+        ClaimsPrincipal principal;
+        SecurityToken validatedSecurityToken;
+        try
         {
-            throw new Exception("Failed to validate token");
+            principal = tokenHandler.ValidateToken(request.AccessToken, tokenValidationParameters, out validatedSecurityToken);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Failed to validate token", ex);
         }
 
-        var validatedToken = result.SecurityToken as JwtSecurityToken;
-
+        var validatedToken = validatedSecurityToken as JwtSecurityToken;
         if (validatedToken is null)
         {
             throw new Exception("Invalid token");
         }
 
-        if (validatedToken.ValidTo > DateTime.UtcNow)
+        // Extract JTI and name/neptun from token claims (use payload)
+        var tokenJti = principal?.FindFirst(JwtRegisteredClaimNames.Jti)?.Value;
+        var tokenName = principal?.FindFirst(ClaimTypes.Name)?.Value;
+        var tokenNeptun = principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (string.IsNullOrEmpty(tokenJti))
         {
-            throw new Exception("Token is not expired");
+            throw new Exception("Token missing JTI");
         }
 
-        if (validatedToken.Header[JwtRegisteredClaimNames.Jti].ToString() != refreshTokenJwtId.JwtId)
+        if (tokenJti != refreshTokenJwtId.JwtId)
         {
             throw new Exception("Refresh token doesn't belong to access token");
         }
@@ -117,8 +126,8 @@ public class AuthService : GrpcAuthService.AuthService.AuthServiceBase
             });
 
         var (token, refreshToken) = await GetAccessTokenAndRefreshTokenAsync(
-            validatedToken.Header[ClaimTypes.Name].ToString(),
-            validatedToken.Header[JwtRegisteredClaimNames.Jti].ToString());
+            tokenName ?? string.Empty,
+            tokenNeptun ?? string.Empty);
 
         return new RefreshTokenResponse
         {
@@ -129,9 +138,10 @@ public class AuthService : GrpcAuthService.AuthService.AuthServiceBase
 
     private async Task<(string, string)> GetAccessTokenAndRefreshTokenAsync(string name, string neptunCode)
     {
+        var jti = Guid.NewGuid().ToString();
         var claims = new List<Claim>
         {
-            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new(JwtRegisteredClaimNames.Jti, jti),
             new(ClaimTypes.Name, name),
             new(ClaimTypes.NameIdentifier, neptunCode),
             new(ClaimTypes.Role, "student"),
@@ -152,7 +162,7 @@ public class AuthService : GrpcAuthService.AuthService.AuthServiceBase
         var cacheResult = await _authDataServiceClient.AddRefreshTokenToCacheAsync(
             new RefreshTokenRegistrationRequest
             {
-                JwtId = tokenDescriptor.Id,
+                JwtId = jti,
                 RefreshToken = refreshToken,
                 RefreshTokenLifetime = _jwtOptions.RefreshTokenLifetime,
             });

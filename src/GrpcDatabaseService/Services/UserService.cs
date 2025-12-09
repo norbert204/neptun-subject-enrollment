@@ -1,4 +1,6 @@
 ﻿using Google.Protobuf.WellKnownTypes;
+using System.Security.Cryptography;
+using System.Text;
 using Grpc.Core;
 using GrpcDatabaseService.Models;
 using GrpcDatabaseService.Protos;
@@ -39,7 +41,7 @@ namespace GrpcDatabaseService.Services
                     NeptunCode = request.NeptunCode,
                     Name = request.Name,
                     Email = request.Email,
-                    Password = request.Password
+                    Password = HashPassword(request.Password)
                 };
 
                 var result = await _repository.CreateUserAsync(user);
@@ -124,7 +126,7 @@ namespace GrpcDatabaseService.Services
                     NeptunCode = request.NeptunCode,
                     Name = request.Name,
                     Email = request.Email,
-                    Password = request.Password
+                    Password = HashPassword(request.Password)
                 };
 
                 var result = await _repository.UpdateUserAsync(user);
@@ -208,6 +210,18 @@ namespace GrpcDatabaseService.Services
                 _logger.LogError(ex, "Error listing users");
                 return new UserListResponse();
             }
+        }
+
+        // Hash password using SHA256 and return lowercase hex string to match AuthService
+        private static string HashPassword(string password)
+        {
+            if (password is null) return string.Empty;
+            using var sha = SHA256.Create();
+            var bytes = sha.ComputeHash(Encoding.ASCII.GetBytes(password));
+            var sb = new StringBuilder(bytes.Length * 2);
+            foreach (var b in bytes)
+                sb.Append(b.ToString("x2"));
+            return sb.ToString();
         }
     }
 }
