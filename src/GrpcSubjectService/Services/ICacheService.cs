@@ -9,4 +9,8 @@ public interface ICacheService
     Task EnrollToCourseAsync(string courseId, string studentId);
     
     Task<bool> IsStudentAlreadyEnrolledAsync(string courseId, string studentId);
+    
+    Task<List<string>> GetEiligibleCoursesAsync(string studentId);
+    
+    Task<List<string>> GetEnrolledCoursesAsync(string studentId);
 }

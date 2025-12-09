@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <Nullable>disable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.2" />
+        <PackageReference Include="Grpc.AspNetCore" Version="2.64.0"/>
+        <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
+        <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.6" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Include="..\..\.dockerignore">
+        <Link>.dockerignore</Link>
+      </Content>
+    </ItemGroup>
+    
+    <ItemGroup>
+        <Protobuf Include="..\GrpcAuthService\Protos\AuthService.proto" GrpcServices="Client" />
+        <Protobuf Include="..\GrpcSubjectService\Protos\subject.proto" GrpcServices="Client" />
+        <Protobuf Include="..\GrpcDatabaseService\Protos\courseService.proto" GrpcServices="Client" />
+        <Protobuf Include="..\GrpcDatabaseService\Protos\subjectService.proto" GrpcServices="Client" />
+        <Protobuf Include="..\GrpcDatabaseService\Protos\userService.proto" GrpcServices="Client" />
+    </ItemGroup>
+
+</Project>
