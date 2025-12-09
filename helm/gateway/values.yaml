@@ -1,7 +1,3 @@
-# Default values for gateway.
-# This is a YAML-formatted file.
-# Declare variables to be passed into your templates.
-
 replicaCount: 1
 
 image:
@@ -21,14 +17,8 @@ podSecurityContext:
 
 securityContext:
   allowPrivilegeEscalation: false
-  capabilities:
-    drop:
-      - ALL
-  readOnlyRootFilesystem: true
   runAsNonRoot: true
   runAsUser: 1000
-  seccompProfile:
-    type: RuntimeDefault
 
 service:
   type: ClusterIP
@@ -38,11 +28,7 @@ ingress:
   enabled: false
   className: ""
   annotations: {}
-  hosts:
-    - host: chart-example.local
-      paths:
-        - path: /
-          pathType: ImplementationSpecific
+  hosts: []
   tls: []
 
 resources: {}
@@ -54,11 +40,15 @@ readinessProbe:
   tcpSocket:
     port: http
 
-# Service URIs used by the Gateway to call downstream services
 serviceLocation:
   authServiceUri: "http://auth-service:80"
   subjectServiceUri: "http://subject-service:80"
   databaseServiceUri: "http://database-service:80"
+
+dotnet:
+  http2UnencryptedSupport: true
+
+extraEnv: []
 
 autoscaling:
   enabled: true

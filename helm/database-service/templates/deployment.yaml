@@ -44,10 +44,17 @@ spec:
               containerPort: {{ .Values.service.port }}
               protocol: TCP
           env:
+            {{- if .Values.cassandra.contactPoints }}
             - name: CassandraSettings__ContactPoints
               value: {{ .Values.cassandra.contactPoints | quote }}
+            {{- end }}
+            {{- if .Values.cassandra.keyspace }}
             - name: CassandraSettings__Keyspace
               value: {{ .Values.cassandra.keyspace | quote }}
+            {{- end }}
+            {{- with .Values.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
           {{- with .Values.livenessProbe }}
           livenessProbe:
             {{- toYaml . | nindent 12 }}

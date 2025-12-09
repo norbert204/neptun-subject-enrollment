@@ -44,15 +44,25 @@ spec:
               containerPort: {{ .Values.service.port }}
               protocol: TCP
           env:
+            {{- if .Values.serviceLocation.authServiceUri }}
             - name: ServiceLocation__AuthServiceUri
               value: {{ .Values.serviceLocation.authServiceUri | quote }}
+            {{- end }}
+            {{- if .Values.serviceLocation.subjectServiceUri }}
             - name: ServiceLocation__SubjectServiceUri
               value: {{ .Values.serviceLocation.subjectServiceUri | quote }}
+            {{- end }}
+            {{- if .Values.serviceLocation.databaseServiceUri }}
             - name: ServiceLocation__DatabaseServiceUri
               value: {{ .Values.serviceLocation.databaseServiceUri | quote }}
-            # Allow cleartext HTTP/2 for in-cluster gRPC calls
+            {{- end }}
+            {{- if .Values.dotnet.http2UnencryptedSupport }}
             - name: DOTNET_SYSTEM_NET_HTTP_SOCKETSHTTPHANDLER_HTTP2UNENCRYPTEDSUPPORT
               value: "true"
+            {{- end }}
+            {{- with .Values.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
           {{- with .Values.livenessProbe }}
           livenessProbe:
             {{- toYaml . | nindent 12 }}
