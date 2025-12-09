@@ -2,8 +2,18 @@ using GrpcCachingService;
 using GrpcDatabaseService.Protos;
 using GrpcAuthService.Options;
 using GrpcAuthService.Services;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Force HTTP/2 on port 80 for gRPC over h2c
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ListenAnyIP(80, listenOptions =>
+    {
+        listenOptions.Protocols = HttpProtocols.Http2;
+    });
+});
 
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
 
@@ -34,8 +44,6 @@ builder.Services.AddGrpcClient<UserService.UserServiceClient>(x => x.Address = n
     });
 
 var app = builder.Build();
-
-app.UseHttpsRedirection();
 
 app.MapGrpcService<AuthService>();
 

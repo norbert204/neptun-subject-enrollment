@@ -485,3 +485,7 @@ $RECYCLE.BIN/
 
 launchSettings.json
 /GrpcDatabaseService1
+
+# Helm dependency artifacts
+**/Chart.lock
+**/charts/*.tgz

@@ -1,3 +1,6 @@
+using System.Net;
+using System.Net.Http;
+using System.Net.Security;
 using Gateway.Helpers;
 using Gateway.Options;
 using GrpcAuthService;
@@ -19,58 +22,43 @@ builder.Services.AddSerilog(x => x
 var serviceLocationOptions = builder.Configuration.GetSection("ServiceLocation").Get<ServiceLocationOptions>();
 
 builder.Services.AddGrpcClient<AuthService.AuthServiceClient>(x => x.Address = new Uri(serviceLocationOptions!.AuthServiceUri))
-    .ConfigurePrimaryHttpMessageHandler(() =>
+    .ConfigurePrimaryHttpMessageHandler(CreateH2cHandler)
+    .ConfigureHttpClient(c =>
     {
-        var handler = new HttpClientHandler
-        {
-            ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-        };
-
-        return handler;
+        c.DefaultRequestVersion = HttpVersion.Version20;
+        c.DefaultVersionPolicy = HttpVersionPolicy.RequestVersionExact;
     });
 
 builder.Services.AddGrpcClient<Subject.SubjectClient>(x => x.Address = new Uri(serviceLocationOptions!.SubjectServiceUri))
-    .ConfigurePrimaryHttpMessageHandler(() =>
+    .ConfigurePrimaryHttpMessageHandler(CreateH2cHandler)
+    .ConfigureHttpClient(c =>
     {
-        var handler = new HttpClientHandler
-        {
-            ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-        };
-
-        return handler;
+        c.DefaultRequestVersion = HttpVersion.Version20;
+        c.DefaultVersionPolicy = HttpVersionPolicy.RequestVersionExact;
     });
 
 builder.Services.AddGrpcClient<CourseService.CourseServiceClient>(x => x.Address = new Uri(serviceLocationOptions.DatabaseServiceUri))
-    .ConfigurePrimaryHttpMessageHandler(() =>
+    .ConfigurePrimaryHttpMessageHandler(CreateH2cHandler)
+    .ConfigureHttpClient(c =>
     {
-        var handler = new HttpClientHandler
-        {
-            ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-        };
-
-        return handler;
+        c.DefaultRequestVersion = HttpVersion.Version20;
+        c.DefaultVersionPolicy = HttpVersionPolicy.RequestVersionExact;
     });
 
 builder.Services.AddGrpcClient<GrpcDatabaseService.Protos.SubjectService.SubjectServiceClient>(x => x.Address = new Uri(serviceLocationOptions.DatabaseServiceUri))
-    .ConfigurePrimaryHttpMessageHandler(() =>
+    .ConfigurePrimaryHttpMessageHandler(CreateH2cHandler)
+    .ConfigureHttpClient(c =>
     {
-        var handler = new HttpClientHandler
-        {
-            ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-        };
-
-        return handler;
+        c.DefaultRequestVersion = HttpVersion.Version20;
+        c.DefaultVersionPolicy = HttpVersionPolicy.RequestVersionExact;
     });
 
 builder.Services.AddGrpcClient<UserService.UserServiceClient>(x => x.Address = new Uri(serviceLocationOptions.DatabaseServiceUri))
-    .ConfigurePrimaryHttpMessageHandler(() =>
+    .ConfigurePrimaryHttpMessageHandler(CreateH2cHandler)
+    .ConfigureHttpClient(c =>
     {
-        var handler = new HttpClientHandler
-        {
-            ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-        };
-
-        return handler;
+        c.DefaultRequestVersion = HttpVersion.Version20;
+        c.DefaultVersionPolicy = HttpVersionPolicy.RequestVersionExact;
     });
 
 var app = builder.Build();
@@ -90,3 +78,14 @@ app.UseCors(x => x.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.Run();
+
+static HttpMessageHandler CreateH2cHandler()
+{
+    return new SocketsHttpHandler
+    {
+        AllowAutoRedirect = false,
+        AutomaticDecompression = DecompressionMethods.None,
+        UseProxy = false,
+        EnableMultipleHttp2Connections = true
+    };
+}
