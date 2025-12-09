@@ -20,6 +20,7 @@ CHART_DIRS=(
   db-operations-service
   caching-service
   database-service
+  gateway
 )
 
 # Ensure bitnami repo is present (used by some subcharts)
@@ -62,6 +63,14 @@ for chart in "${CHART_DIRS[@]}"; do
 
   if [ "$chart" = "subject-service" ]; then
     extra_args+=(--set-string "servicesConfig.databaseServiceUri=${db_uri}" --set-string "servicesConfig.cachingServiceUri=${cache_uri}")
+  fi
+
+  if [ "$chart" = "gateway" ]; then
+    auth_release=$(release_name "auth-service")
+    subject_release=$(release_name "subject-service")
+    auth_uri="http://${auth_release}:80"
+    subject_uri="http://${subject_release}:80"
+    extra_args+=(--set-string "serviceLocation.authServiceUri=${auth_uri}" --set-string "serviceLocation.subjectServiceUri=${subject_uri}" --set-string "serviceLocation.databaseServiceUri=${db_uri}")
   fi
 
   helm_cmd=(helm upgrade --install "$name" "$chart_path" --namespace "$NAMESPACE" --create-namespace --dependency-update)
