@@ -22,19 +22,44 @@ builder.Services.AddSerilog(x => x
 var serviceLocationOptions = builder.Configuration.GetSection("ServiceLocation").Get<ServiceLocationOptions>();
 
 builder.Services.AddGrpcClient<AuthService.AuthServiceClient>(x => x.Address = new Uri(serviceLocationOptions!.AuthServiceUri))
-    .ConfigurePrimaryHttpMessageHandler(CreateH2cHandler);
+    .ConfigurePrimaryHttpMessageHandler(CreateH2cHandler)
+    .ConfigureHttpClient(c =>
+    {
+        c.DefaultRequestVersion = HttpVersion.Version20;
+        c.DefaultVersionPolicy = HttpVersionPolicy.RequestVersionExact;
+    });
 
 builder.Services.AddGrpcClient<Subject.SubjectClient>(x => x.Address = new Uri(serviceLocationOptions!.SubjectServiceUri))
-    .ConfigurePrimaryHttpMessageHandler(CreateH2cHandler);
+    .ConfigurePrimaryHttpMessageHandler(CreateH2cHandler)
+    .ConfigureHttpClient(c =>
+    {
+        c.DefaultRequestVersion = HttpVersion.Version20;
+        c.DefaultVersionPolicy = HttpVersionPolicy.RequestVersionExact;
+    });
 
 builder.Services.AddGrpcClient<CourseService.CourseServiceClient>(x => x.Address = new Uri(serviceLocationOptions.DatabaseServiceUri))
-    .ConfigurePrimaryHttpMessageHandler(CreateH2cHandler);
+    .ConfigurePrimaryHttpMessageHandler(CreateH2cHandler)
+    .ConfigureHttpClient(c =>
+    {
+        c.DefaultRequestVersion = HttpVersion.Version20;
+        c.DefaultVersionPolicy = HttpVersionPolicy.RequestVersionExact;
+    });
 
 builder.Services.AddGrpcClient<GrpcDatabaseService.Protos.SubjectService.SubjectServiceClient>(x => x.Address = new Uri(serviceLocationOptions.DatabaseServiceUri))
-    .ConfigurePrimaryHttpMessageHandler(CreateH2cHandler);
+    .ConfigurePrimaryHttpMessageHandler(CreateH2cHandler)
+    .ConfigureHttpClient(c =>
+    {
+        c.DefaultRequestVersion = HttpVersion.Version20;
+        c.DefaultVersionPolicy = HttpVersionPolicy.RequestVersionExact;
+    });
 
 builder.Services.AddGrpcClient<UserService.UserServiceClient>(x => x.Address = new Uri(serviceLocationOptions.DatabaseServiceUri))
-    .ConfigurePrimaryHttpMessageHandler(CreateH2cHandler);
+    .ConfigurePrimaryHttpMessageHandler(CreateH2cHandler)
+    .ConfigureHttpClient(c =>
+    {
+        c.DefaultRequestVersion = HttpVersion.Version20;
+        c.DefaultVersionPolicy = HttpVersionPolicy.RequestVersionExact;
+    });
 
 var app = builder.Build();
 
@@ -61,11 +86,6 @@ static HttpMessageHandler CreateH2cHandler()
         AllowAutoRedirect = false,
         AutomaticDecompression = DecompressionMethods.None,
         UseProxy = false,
-        EnableMultipleHttp2Connections = true,
-        Http2Only = true,
-        SslOptions = new SslClientAuthenticationOptions
-        {
-            RemoteCertificateValidationCallback = (_, _, _, _) => true
-        }
+        EnableMultipleHttp2Connections = true
     };
 }
