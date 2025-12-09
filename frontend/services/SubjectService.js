@@ -10,3 +10,6 @@ export const EnrollInCourse = (studentId, courseId) =>
     studentId,
     courseId
   });
+
+export const getEnrolledCourses = (studentId) =>
+  axios.get(`${REST_API_BASE_URL}/student/${studentId}/enrolled`);
