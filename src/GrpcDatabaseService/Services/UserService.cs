@@ -211,17 +211,17 @@ namespace GrpcDatabaseService.Services
                 return new UserListResponse();
             }
         }
+
+        // Hash password using SHA256 and return lowercase hex string to match AuthService
+        private static string HashPassword(string password)
+        {
+            if (password is null) return string.Empty;
+            using var sha = SHA256.Create();
+            var bytes = sha.ComputeHash(Encoding.ASCII.GetBytes(password));
+            var sb = new StringBuilder(bytes.Length * 2);
+            foreach (var b in bytes)
+                sb.Append(b.ToString("x2"));
+            return sb.ToString();
+        }
     }
 }
-
-    // Hash password using SHA256 and return lowercase hex string to match AuthService
-    static string HashPassword(string password)
-    {
-        if (password is null) return string.Empty;
-        using var sha = SHA256.Create();
-        var bytes = sha.ComputeHash(Encoding.ASCII.GetBytes(password));
-        var sb = new StringBuilder(bytes.Length * 2);
-        foreach (var b in bytes)
-            sb.Append(b.ToString("x2"));
-        return sb.ToString();
-    }
