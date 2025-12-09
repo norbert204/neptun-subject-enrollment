@@ -82,26 +82,29 @@ public class AuthService : GrpcAuthService.AuthService.AuthServiceBase
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(_jwtOptions.Secret)),
             ValidateIssuer = false,
             ValidateAudience = false,
-            RequireExpirationTime = true,
-            ValidateLifetime = true,
+            RequireExpirationTime = false,
+            ValidateLifetime = false,
         };
 
-        var result = await tokenHandler.ValidateTokenAsync(request.AccessToken, tokenValidationParameters);
-
-        if (!result.IsValid)
+        // Use synchronous ValidateToken to obtain ClaimsPrincipal and SecurityToken
+        ClaimsPrincipal principal;
+        SecurityToken validatedSecurityToken;
+        try
         {
-            throw new Exception("Failed to validate token");
+            principal = tokenHandler.ValidateToken(request.AccessToken, tokenValidationParameters, out validatedSecurityToken);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Failed to validate token", ex);
         }
 
-        var validatedToken = result.SecurityToken as JwtSecurityToken;
-
+        var validatedToken = validatedSecurityToken as JwtSecurityToken;
         if (validatedToken is null)
         {
             throw new Exception("Invalid token");
         }
 
-        // Extract JTI and name/neptun from token claims (use payload, not header)
-        var principal = result.Principal;
+        // Extract JTI and name/neptun from token claims (use payload)
         var tokenJti = principal?.FindFirst(JwtRegisteredClaimNames.Jti)?.Value;
         var tokenName = principal?.FindFirst(ClaimTypes.Name)?.Value;
         var tokenNeptun = principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
