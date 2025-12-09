@@ -35,11 +35,11 @@ const ListEnrolledSubjectsComponent = () => {
                 <tbody>
                     {subjects.map(subject => (
                         <tr key={subject.CourseId}>
-                            <td>{course.CourseId}</td>
-                            <td>{course.CourseType}</td>
-                            <td>{course.StartTime}</td>
-                            <td>{course.EndTime}</td>
-                            <td>{course.Room}</td>
+                            <td>{subject.CourseId}</td>
+                            <td>{subject.CourseType}</td>
+                            <td>{subject.StartTime}</td>
+                            <td>{subject.EndTime}</td>
+                            <td>{subject.Room}</td>
                         </tr>
                     ))}
                 </tbody>
