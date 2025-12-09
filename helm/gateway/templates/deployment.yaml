@@ -50,6 +50,9 @@ spec:
               value: {{ .Values.serviceLocation.subjectServiceUri | quote }}
             - name: ServiceLocation__DatabaseServiceUri
               value: {{ .Values.serviceLocation.databaseServiceUri | quote }}
+            # Allow cleartext HTTP/2 for in-cluster gRPC calls
+            - name: DOTNET_SYSTEM_NET_HTTP_SOCKETSHTTPHANDLER_HTTP2UNENCRYPTEDSUPPORT
+              value: "true"
           {{- with .Values.livenessProbe }}
           livenessProbe:
             {{- toYaml . | nindent 12 }}

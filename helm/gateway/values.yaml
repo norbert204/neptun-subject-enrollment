@@ -48,19 +48,17 @@ ingress:
 resources: {}
 
 livenessProbe:
-  httpGet:
-    path: /swagger/index.html
+  tcpSocket:
     port: http
 readinessProbe:
-  httpGet:
-    path: /swagger/index.html
+  tcpSocket:
     port: http
 
 # Service URIs used by the Gateway to call downstream services
 serviceLocation:
-  authServiceUri: ""
-  subjectServiceUri: ""
-  databaseServiceUri: ""
+  authServiceUri: "http://auth-service:80"
+  subjectServiceUri: "http://subject-service:80"
+  databaseServiceUri: "http://database-service:80"
 
 autoscaling:
   enabled: false

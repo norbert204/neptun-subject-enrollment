@@ -1,3 +1,6 @@
+using System.Net;
+using System.Net.Http;
+using System.Net.Security;
 using Gateway.Helpers;
 using Gateway.Options;
 using GrpcAuthService;
@@ -19,59 +22,19 @@ builder.Services.AddSerilog(x => x
 var serviceLocationOptions = builder.Configuration.GetSection("ServiceLocation").Get<ServiceLocationOptions>();
 
 builder.Services.AddGrpcClient<AuthService.AuthServiceClient>(x => x.Address = new Uri(serviceLocationOptions!.AuthServiceUri))
-    .ConfigurePrimaryHttpMessageHandler(() =>
-    {
-        var handler = new HttpClientHandler
-        {
-            ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-        };
-
-        return handler;
-    });
+    .ConfigurePrimaryHttpMessageHandler(CreateH2cHandler);
 
 builder.Services.AddGrpcClient<Subject.SubjectClient>(x => x.Address = new Uri(serviceLocationOptions!.SubjectServiceUri))
-    .ConfigurePrimaryHttpMessageHandler(() =>
-    {
-        var handler = new HttpClientHandler
-        {
-            ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-        };
-
-        return handler;
-    });
+    .ConfigurePrimaryHttpMessageHandler(CreateH2cHandler);
 
 builder.Services.AddGrpcClient<CourseService.CourseServiceClient>(x => x.Address = new Uri(serviceLocationOptions.DatabaseServiceUri))
-    .ConfigurePrimaryHttpMessageHandler(() =>
-    {
-        var handler = new HttpClientHandler
-        {
-            ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-        };
-
-        return handler;
-    });
+    .ConfigurePrimaryHttpMessageHandler(CreateH2cHandler);
 
 builder.Services.AddGrpcClient<GrpcDatabaseService.Protos.SubjectService.SubjectServiceClient>(x => x.Address = new Uri(serviceLocationOptions.DatabaseServiceUri))
-    .ConfigurePrimaryHttpMessageHandler(() =>
-    {
-        var handler = new HttpClientHandler
-        {
-            ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-        };
-
-        return handler;
-    });
+    .ConfigurePrimaryHttpMessageHandler(CreateH2cHandler);
 
 builder.Services.AddGrpcClient<UserService.UserServiceClient>(x => x.Address = new Uri(serviceLocationOptions.DatabaseServiceUri))
-    .ConfigurePrimaryHttpMessageHandler(() =>
-    {
-        var handler = new HttpClientHandler
-        {
-            ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-        };
-
-        return handler;
-    });
+    .ConfigurePrimaryHttpMessageHandler(CreateH2cHandler);
 
 var app = builder.Build();
 
@@ -90,3 +53,19 @@ app.UseCors(x => x.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.Run();
+
+static HttpMessageHandler CreateH2cHandler()
+{
+    return new SocketsHttpHandler
+    {
+        AllowAutoRedirect = false,
+        AutomaticDecompression = DecompressionMethods.None,
+        UseProxy = false,
+        EnableMultipleHttp2Connections = true,
+        Http2Only = true,
+        SslOptions = new SslClientAuthenticationOptions
+        {
+            RemoteCertificateValidationCallback = (_, _, _, _) => true
+        }
+    };
+}

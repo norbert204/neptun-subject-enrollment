@@ -17,6 +17,7 @@ CHART_DIRS=(
   auth-service
   database-service
   caching-service
+  gateway
 )
 
 # Helper to compute release name
