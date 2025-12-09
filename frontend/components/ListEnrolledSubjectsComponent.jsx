@@ -1,8 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import './ListSubjectComponent.css'
 import { getEnrolledCourses } from '../services/SubjectService';
-import './ListEnrolledSubjectsComponent.css'
+import './UniversalComponent.css';
 
 const ListEnrolledSubjectsComponent = () => {
     

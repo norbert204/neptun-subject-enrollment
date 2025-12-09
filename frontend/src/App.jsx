@@ -2,6 +2,7 @@ import { useState } from 'react'
 import HeaderComponent from '../components/HeaderComponent'
 import ListStudentComponent from '../components/ListStudentComponent'
 import ListSubjectComponent from '../components/ListSubjectComponent'
+import ListEnrolledSubjectsComponent from '../components/ListEnrolledSubjectsComponent'
 import './App.css'
 
 function App() {
@@ -12,6 +13,7 @@ function App() {
       <HeaderComponent activeComponent={activeComponent} setActiveComponent={setActiveComponent} />
       {activeComponent === 'students' && <ListStudentComponent />}
       {activeComponent === 'subjects' && <ListSubjectComponent />}
+      {activeComponent === 'enrolledSubjects' && <ListEnrolledSubjectsComponent />}
     </>
   )
 }

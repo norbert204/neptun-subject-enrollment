@@ -1,8 +1,9 @@
 import React from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import './UniversalComponent.css';
 
 const ListStudentComponent = () => {
-    // Mintaadatok a kért mezőkkel
+
     const dummyData = [
         { id: 1, name: "AsdAsd", neptun: "a1bc12", email: "asdasd@egyetem.hu", password: "asdasd" },
         { id: 2, name: "dsabsa", neptun: "bnm232", email: "dsabsa@egyetem.hu", password: "dsabsa" },
@@ -29,7 +30,7 @@ const ListStudentComponent = () => {
                             <td>{student.email}</td>
                             <td>{student.password}</td>
                             <td>
-                               <button className='btn btn-primary'>Enroll</button>
+                               <button className='btn btn-primary'>Teszt</button>
                             </td>
                         </tr>
                     ))}
