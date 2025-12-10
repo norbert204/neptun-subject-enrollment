@@ -10,9 +10,12 @@ const ListSubjectComponent = () => {
 
     useEffect(() =>{
         getEligibleCoursesForStudent(studentId).then((response) => {
-            setCourses(response.data.EligibleCourses)
+            const payload = response && response.data;
+            const eligible = payload && payload.EligibleCourses ? payload.EligibleCourses : payload;
+            setCourses(Array.isArray(eligible) ? eligible : []);
         }).catch(error => {
             console.log(error);
+            setCourses([]);
         })
     }, [])
 
@@ -38,7 +41,7 @@ const ListSubjectComponent = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    {courses.map(course => (
+                    {Array.isArray(courses) && courses.map(course => (
                         <tr key={course.CourseId}>
                             <td>{course.CourseId}</td>
                             <td>{course.CourseType}</td>
