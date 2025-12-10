@@ -4,11 +4,11 @@ import './UniversalComponent.css'
 import { getEligibleCoursesForStudent, EnrollInCourse } from '../services/SubjectService';
 
 const ListSubjectComponent = () => {
-    
-    const studentId = "1";
+    const [studentId, setStudentId] = useState('1');
     const[courses, setCourses] = useState([])
 
     useEffect(() =>{
+        if(!studentId) { setCourses([]); return; }
         getEligibleCoursesForStudent(studentId).then((response) => {
             const payload = response && response.data;
             const eligible = payload && payload.EligibleCourses ? payload.EligibleCourses : payload;
@@ -17,7 +17,7 @@ const ListSubjectComponent = () => {
             console.log(error);
             setCourses([]);
         })
-    }, [])
+    }, [studentId])
 
     function handleEnroll(studentId, courseId) {
         EnrollInCourse(studentId, courseId).then((response) => {
@@ -30,6 +30,13 @@ const ListSubjectComponent = () => {
             <h2 className='table-title'>
                 Tantárgyak listája
             </h2>
+            <div className="mb-3">
+                <label className="form-label">Student ID</label>
+                <div className="d-flex gap-2">
+                    <input className="form-control w-25" value={studentId} onChange={e => setStudentId(e.target.value)} />
+                    <button className="btn btn-secondary" onClick={() => setStudentId('1')}>Reset</button>
+                </div>
+            </div>
             <table className='table table-striped table-bordered'>
                 <thead>
                     <tr>

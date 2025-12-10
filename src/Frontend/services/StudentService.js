@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_URL = `${process.env.GATEWAY_URI}/user`;
+// Use relative path so requests go through frontend nginx proxy (/api/* -> gateway)
+const API_URL = '/api/user';
 
 export const getAllStudents = () => {
     return axios.get(API_URL);

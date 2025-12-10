@@ -1,6 +1,6 @@
 import React from 'react'
 
-const HeaderComponent = ({ activeComponent, setActiveComponent }) => {
+const HeaderComponent = ({ activeComponent, setActiveComponent, isAuthenticated, onLogout }) => {
   return (
     <div>
         <header>
@@ -26,6 +26,14 @@ const HeaderComponent = ({ activeComponent, setActiveComponent }) => {
                         >
                             Felvett tantárgyak
                         </button>
+                                                {isAuthenticated ? (
+                                                    <>
+                                                        <button className={`btn ${activeComponent === 'admin' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setActiveComponent('admin')}>Admin</button>
+                                                        <button className='btn btn-danger' onClick={onLogout}>Logout</button>
+                                                    </>
+                                                ) : (
+                                                    <button className={`btn ${activeComponent === 'login' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setActiveComponent('login')}>Login</button>
+                                                )}
                     </div>
                 </div>
             </nav>

@@ -5,10 +5,11 @@ import { getEnrolledCourses } from '../services/SubjectService';
 
 const ListEnrolledSubjectsComponent = () => {
     
-    const studentId =1;
+    const [studentId, setStudentId] = useState('1');
     const[subjects, setSubjects] = useState([])
 
     useEffect(() =>{
+        if(!studentId) { setSubjects([]); return; }
         getEnrolledCourses(studentId).then((response) => {
             const payload = response && response.data;
             setSubjects(Array.isArray(payload) ? payload : []);
@@ -16,7 +17,7 @@ const ListEnrolledSubjectsComponent = () => {
             console.log(error);
             setSubjects([]);
         })
-    }, [])
+    }, [studentId])
 
     return (
         <div className='container'>
