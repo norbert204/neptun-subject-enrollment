@@ -8,8 +8,8 @@ export const getEligibleCoursesForStudent = (studentId) =>
 
 export const EnrollInCourse = (studentId, courseId) =>
   axios.post(`${REST_API_BASE_URL}/enroll-to-course`, {
-    studentId,
-    courseId
+    StudentId: studentId,
+    CourseId: courseId,
   });
 
 export const getEnrolledCourses = (studentId) =>
