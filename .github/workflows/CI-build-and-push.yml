@@ -18,6 +18,7 @@ on:
           - GrpcDatabaseService
           - GrpcDBOperationsService
           - GrpcSubjectService
+          - Frontend
           - Gateway
       push-latest:
         description: 'Whether to also push :latest tag (true/false)'

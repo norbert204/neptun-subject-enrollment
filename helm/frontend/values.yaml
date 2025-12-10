@@ -1,0 +1,79 @@
+# Default values for gateway.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: ghcr.io/norbert204/frontend
+  pullPolicy: Always
+  tag: "latest"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext:
+  # Set fsGroup to match nginx user/group so runtime dirs are writable
+  fsGroup: 101
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  # nginx needs writable runtime directories (cache/tmp). Disable read-only root.
+  readOnlyRootFilesystem: false
+  runAsNonRoot: true
+  # Run as nginx user (uid 101) so the process can write nginx cache/temp dirs
+  runAsUser: 101
+  seccompProfile:
+    type: RuntimeDefault
+
+service:
+  type: NodePort
+  port: 80
+  nodePort: 30080
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+
+resources: {}
+
+livenessProbe:
+  tcpSocket:
+    port: http
+readinessProbe:
+  tcpSocket:
+    port: http
+
+# Service URIs used by the Gateway to call downstream services
+serviceLocation:
+  gatewayUri: "http://gateway:80"
+  gatewayHost: "gateway"
+
+extraEnv: []
+
+autoscaling:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 80
+
+volumes: []
+volumeMounts: []
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
