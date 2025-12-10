@@ -18,8 +18,26 @@ data:
         try_files $uri $uri/ /index.html;
       }
 
-      # Proxy API requests to gateway inside cluster
+      # Special-case user endpoints: Admin controller exposes user routes under /Admin/user
+      location /api/user/ {
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_pass http://{{ .Values.serviceLocation.gatewayHost }}:80/Admin/user/;
+      }
+      # exact match for /api/user without trailing slash
+      location = /api/user {
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_pass http://{{ .Values.serviceLocation.gatewayHost }}:80/Admin/user;
+      }
+
+      # Proxy other API requests to gateway inside cluster (strip /api prefix)
       location /api/ {
+        rewrite ^/api/(.*)$ /$1 break;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
