@@ -17,16 +17,19 @@ podAnnotations: {}
 podLabels: {}
 
 podSecurityContext:
-  fsGroup: 2000
+  # Set fsGroup to match nginx user/group so runtime dirs are writable
+  fsGroup: 101
 
 securityContext:
   allowPrivilegeEscalation: false
   capabilities:
     drop:
       - ALL
-  readOnlyRootFilesystem: true
+  # nginx needs writable runtime directories (cache/tmp). Disable read-only root.
+  readOnlyRootFilesystem: false
   runAsNonRoot: true
-  runAsUser: 1000
+  # Run as nginx user (uid 101) so the process can write nginx cache/temp dirs
+  runAsUser: 101
   seccompProfile:
     type: RuntimeDefault
 

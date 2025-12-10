@@ -13,13 +13,12 @@ const ListStudentComponent = () => {
 
     const loadStudents = () => {
         getAllStudents().then((response) => {
-            if (response.data.users) {
-                setStudents(response.data.users);
-            } else {
-                setStudents(response.data);
-            }
+            const payload = response && response.data;
+            const users = payload && payload.users ? payload.users : payload;
+            setStudents(Array.isArray(users) ? users : []);
         }).catch(error => {
             console.error("Hiba a betöltéskor:", error);
+            setStudents([]);
         });
     };
 
@@ -49,7 +48,7 @@ const ListStudentComponent = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    {students.map((student, index) => (
+                    {Array.isArray(students) && students.map((student, index) => (
                         <tr key={student.neptunCode || index}>
                             <td>{student.name}</td>
                             <td>{student.neptunCode}</td>

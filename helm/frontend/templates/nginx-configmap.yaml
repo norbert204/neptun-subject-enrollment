@@ -5,7 +5,7 @@ metadata:
   labels:
     {{- include "frontend.labels" . | nindent 4 }}
 data:
-  default.conf: |
+  default.conf.template: |
     server {
       listen 80;
       server_name  localhost;
@@ -32,4 +32,21 @@ data:
         proxy_pass http://{{ .Values.serviceLocation.gatewayHost }}:80;
         proxy_set_header Host $host;
       }
+    }
+
+  nginx.conf: |
+    user  nginx;
+    worker_processes auto;
+    pid /var/run/nginx/nginx.pid;
+
+    events {
+      worker_connections 1024;
+    }
+
+    http {
+      include       /etc/nginx/mime.types;
+      default_type  application/octet-stream;
+      sendfile        on;
+      keepalive_timeout 65;
+      include /etc/nginx/conf.d/*.conf;
     }

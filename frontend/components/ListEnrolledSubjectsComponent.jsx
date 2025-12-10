@@ -10,9 +10,11 @@ const ListEnrolledSubjectsComponent = () => {
 
     useEffect(() =>{
         getEnrolledCourses(studentId).then((response) => {
-            setSubjects(response.data)
+            const payload = response && response.data;
+            setSubjects(Array.isArray(payload) ? payload : []);
         }).catch(error => {
             console.log(error);
+            setSubjects([]);
         })
     }, [])
 
@@ -32,7 +34,7 @@ const ListEnrolledSubjectsComponent = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    {subjects.map(subject => (
+                    {Array.isArray(subjects) && subjects.map(subject => (
                         <tr key={subject.CourseId}>
                             <td>{subject.CourseId}</td>
                             <td>{subject.CourseType}</td>

@@ -12,6 +12,7 @@ RELEASE_PREFIX=${RELEASE_PREFIX:-}
 DELETE_NAMESPACE=${DELETE_NAMESPACE:-false}
 
 CHART_DIRS=(
+  frontend
   db-operations-service
   subject-service
   auth-service
