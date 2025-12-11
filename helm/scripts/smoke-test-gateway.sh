@@ -117,7 +117,15 @@ create_user() {
   http=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$ADMIN_BASE/user" "${HEADERS[@]}" -H "Content-Type: application/json" -d "$payload" ) || http=000
   echo "CREATE_USER $id -> $http"
   if [ "$http" -ge 200 ] && [ "$http" -lt 300 ]; then
-    append_unique "$USERS_FILE" "$id"
+    # wait until user is visible via GET (avoid race with downstream services)
+    for i in 1 2 3 4 5; do
+      status=$(curl -s -o /dev/null -w "%{http_code}" "$ADMIN_BASE/user/$id" "${HEADERS[@]}" || echo 000)
+      if [ "$status" = "200" ]; then
+        append_unique "$USERS_FILE" "$id"
+        break
+      fi
+      sleep 0.2
+    done
   fi
 }
 
@@ -129,8 +137,16 @@ create_subject() {
   http=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$ADMIN_BASE/subject" "${HEADERS[@]}" -H "Content-Type: application/json" -d "$payload" ) || http=000
   echo "CREATE_SUBJECT $id (course $courseId) -> $http"
   if [ "$http" -ge 200 ] && [ "$http" -lt 300 ]; then
-    append_unique "$SUBJECTS_FILE" "$id"
-    append_unique "$COURSES_FILE" "$courseId"
+    # wait until the course is visible via GET to avoid race conditions
+    for i in 1 2 3 4 5; do
+      status=$(curl -s -o /dev/null -w "%{http_code}" "$ADMIN_BASE/course/$courseId" "${HEADERS[@]}" || echo 000)
+      if [ "$status" = "200" ]; then
+        append_unique "$SUBJECTS_FILE" "$id"
+        append_unique "$COURSES_FILE" "$courseId"
+        break
+      fi
+      sleep 0.2
+    done
   fi
 }
 
@@ -150,8 +166,17 @@ eligible_courses() {
 enroll_course() {
   local student=$1; local course=$2
   payload=$(printf '{"StudentId":"%s","CourseId":"%s"}' "$student" "$course")
-  http=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$SUBJECT_BASE/enroll-to-course" "${HEADERS[@]}" -H "Content-Type: application/json" -d "$payload" ) || http=000
-  echo "ENROLL ${student} -> ${course} -> $http"
+  TMP=$(mktemp)
+  http=$(curl -s -o "$TMP" -w "%{http_code}" -X POST "$SUBJECT_BASE/enroll-to-course" "${HEADERS[@]}" -H "Content-Type: application/json" -d "$payload" ) || http=000
+  if [ "$http" -ge 200 ] && [ "$http" -lt 300 ]; then
+    echo "ENROLL ${student} -> ${course} -> $http"
+  else
+    echo "ENROLL ${student} -> ${course} -> $http"
+    echo "  Response body (first 400 chars):"
+    head -c 400 "$TMP" | sed -n '1,200p'
+    echo "  (full body saved to $TMP)"
+  fi
+  # don't remove TMP so troubleshooting can inspect it if needed
 }
 
 start_enrollment() {
@@ -216,6 +241,21 @@ worker() {
 
 END_TIME=$(( $(date +%s) + DURATION ))
 PIDS=()
+# ensure enrollment period is started so enroll calls succeed
+start_enrollment >/dev/null || true
+sleep 1
+# pre-seed some users and subjects so workers have items to enroll to
+echo "Pre-seeding baseline users and subjects..."
+for idx in $(seq 1 20); do
+  neptun="${PREFIX}U$(printf '%04d' $((1000 + idx)))"
+  sid="${PREFIX}S$(printf '%04d' $((1000 + idx)))"
+  create_user "$neptun"
+  create_subject "$sid"
+  # small pause to let creation propagate
+  sleep 0.05
+done
+echo "Pre-seed complete."
+END_TIME=$(( $(date +%s) + DURATION ))
 for i in $(seq 1 $WORKERS); do
   worker $i $END_TIME &
   PIDS+=($!)
